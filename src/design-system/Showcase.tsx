@@ -1,0 +1,54 @@
+import { useState } from 'react';
+import { ArrowUpRight, Bookmark, Check, ChevronLeft, ChevronRight, Plus, Volume2, Camera, CircleAlert, Search } from 'lucide-react';
+import { ShutterButton, Button, Chip, IconButton, PhotoMarker, Polaroid, Progress, SearchField, Tag, WordRow } from './components';
+import './showcase.css';
+
+const words = [
+  { word: 'coffee', chinese: '咖啡', category: '食物', image: '/sample-images/cafe_scene.jpg', ipa: '/ˈkɒf.i/', example: 'A cup of coffee, a moment to slow down.', translation: '一杯咖啡，讓生活慢下來。' },
+  { word: 'plant', chinese: '植物', category: '植物', image: '/sample-images/study_desk.jpg', ipa: '/plænt/', example: 'There is a plant on the desk.', translation: '桌上有一盆植物。' },
+  { word: 'table', chinese: '桌子', category: '生活用品', image: '/sample-images/food_scene.jpg', ipa: '/ˈteɪ.bəl/', example: 'We sit at the table together.', translation: '我們一起坐在桌邊。' },
+];
+const palette = [ ['Cream', '--vs-cream', '#F3EADB', '頁面底色'], ['Paper', '--vs-paper', '#FFF9EF', '紙卡表面'], ['Coffee', '--vs-coffee', '#6C503C', '導覽・選取'], ['Espresso', '--vs-espresso', '#302820', '主要文字'], ['Tangerine', '--vs-orange', '#F47732', '快門・主操作'], ['Blue', '--vs-blue', '#426775', '標籤・焦點'] ];
+
+export default function Showcase() {
+  const [selected, setSelected] = useState(0);
+  const [saved, setSaved] = useState<string[]>([]);
+  const [category, setCategory] = useState('全部');
+  const [query, setQuery] = useState('');
+  const [notice, setNotice] = useState('點選照片標記，探索生活裡的單字。');
+  const current = words[selected];
+  const toggleSave = (word: string) => setSaved(previous => previous.includes(word) ? previous.filter(item => item !== word) : [...previous, word]);
+  const speak = (word: string) => {
+    if (!('speechSynthesis' in window)) { setNotice('此瀏覽器不支援發音，請換用支援語音的瀏覽器。'); return; }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(word);
+    utterance.lang = 'en-US';
+    utterance.rate = .85;
+    utterance.onerror = () => setNotice('發音暫時無法播放，請稍後重試。');
+    window.speechSynthesis.speak(utterance);
+    setNotice(`正在播放 ${word}`);
+  };
+  const filtered = words.filter(item => (category === '全部' || category === item.category) && `${item.word}${item.chinese}`.toLowerCase().includes(query.toLowerCase()));
+  return <div className="vs-theme vs-showcase">
+    <a className="vs-skip" href="#main">跳至主要內容</a>
+    <header className="vs-site-header"><a href="#overview" className="vs-brand"><span className="vs-brand-mark" aria-hidden="true"><i/><i/><i/></span>Words in Life<span className="vs-brand-divider">/</span><span className="vs-header-caption">Design system</span></a><a href="/" className="vs-app-link">開啟應用程式 <ArrowUpRight /></a></header>
+    <div className="vs-layout"><aside className="vs-sidebar"><p>設計指南</p><nav aria-label="設計系統章節"><a href="#overview">設計概覽</a><a href="#colors">色彩系統</a><a href="#typography">文字與排版</a><a href="#components">基礎元件</a><a href="#screens">目前畫面</a><a href="#patterns">元件組合</a><a href="#principles">使用原則</a></nav><div className="vs-sidebar-note">從生活取景，<br/>把單字留下。<span>SNAP · LEARN · GROW</span></div></aside>
+    <main id="main">
+      <section id="overview" className="vs-hero"><div className="vs-hero-copy"><h1>讓每個單字，<br/>都有生活的溫度。</h1><p>把日常的一眼，收藏成記憶。<br/>以暖色紙張、拍立得與手寫筆觸，<br/>建立 Words in Life 的視覺語言。</p><a className="vs-text-link" href="#components">探索元件 <ArrowUpRight /></a><span className="vs-edition">Design system / v0.5</span></div><div className="vs-hero-art"><Polaroid src="/sample-images/cafe_scene.jpg" alt="陽光灑落的咖啡館，桌上放著咖啡與電腦" taped><span className="vs-handwritten">Little moments, lasting words.</span><span className="vs-photo-caption">日常，就是最好的單字本。</span></Polaroid><div className="vs-swatch-stack" aria-hidden="true"><span/><span/><span/></div></div></section>
+      <section id="colors" className="vs-section"><div className="vs-section-heading"><h2>從日光裡，挑選顏色。</h2><span>Color palette</span></div><p className="vs-section-intro">奶油色承接內容，深咖啡穩定閱讀，暖橘色留給值得按下的瞬間。</p><div className="vs-palette">{palette.map(([name, token, hex, usage]) => <div key={name} className="vs-color"><div style={{ background: `var(${token})` }}/><strong>{name}</strong><code>{hex}</code><span>{usage}</span></div>)}</div><p className="vs-caption">暖橘底使用深色文字；橘色文字使用較深的 Rust（#A64016）。以上色值依參考圖重新定義。</p></section>
+      <section id="typography" className="vs-section"><div className="vs-section-heading"><h2>清楚閱讀，自然記住。</h2><span>Typography</span></div><div className="vs-type-grid"><div><div className="vs-type-display">把世界，<br/>變成你的單字本。</div><p>Noto Sans TC · 標題與中文內文</p></div><div className="vs-type-spec"><span className="vs-type-word">coffee</span><span className="vs-handwritten">A little discovery, every day.</span><p>Plus Jakarta Sans · 英文單字<br/>Kalam · 照片註記與例句</p><div className="vs-type-scale"><span>27 / 頁面標題</span><span>18 / 區塊標題</span><span>32 / 詳情單字</span><span>20 / 收藏註記</span><span>15 / 內文</span><span>12 / 輔助</span></div></div></div></section>
+      <section id="components" className="vs-section"><div className="vs-section-heading"><h2>熟悉的操作，有自己的個性。</h2><span>Components</span></div><div className="vs-component-grid"><article><h3>按鈕與動作</h3><div className="vs-flex"><Button onClick={() => { setSaved(words.map(word => word.word)); setNotice('已收藏全部 3 個示範單字。'); }}><Plus />全部加入</Button><Button variant="secondary" onClick={() => { setSaved([]); setNotice('已清除示範收藏。'); }}>清除收藏</Button><Button disabled>尚未選取</Button><Button loading>辨識中</Button><IconButton label="播放 coffee 發音" onClick={() => speak('coffee')}><Volume2 /></IconButton></div><p className="vs-caption">主要 / 次要 / 停用 / 載入 / 圖示</p></article><article><h3>分類與標籤</h3><div className="vs-flex">{['全部', '食物', '生活用品', '植物'].map(item => <Chip key={item} selected={category === item} onClick={() => setCategory(item)}>{item}</Chip>)}</div><div className="vs-flex vs-spaced"><Tag>n. 名詞</Tag><Tag tone="blue">生活用品</Tag></div><p className="vs-caption">分類會同步更新下方的單字列表。</p></article><article><h3>搜尋與回饋</h3><SearchField value={query} onChange={event => setQuery(event.target.value)} placeholder="搜尋英文或中文單字…" /><div className="vs-spaced"><SearchField label="錯誤狀態範例" placeholder="搜尋單字…" disabled error="無法載入單字，請檢查連線後重試。（狀態示範）" /></div></article><article><h3>辨識進度</h3><Progress value={58} label="正在辨識單字…" /><p className="vs-caption">58% · 示範數值；未知進度時不傳入 value。</p><div className="vs-inline-note"><CircleAlert /><span>辨識失敗時保留照片，提供重新拍攝與重試。</span></div></article></div></section>
+      <section id="screens" className="vs-section"><div className="vs-section-heading"><h2>目前的應用程式畫面</h2><span>Production patterns · v0.5</span></div><p className="vs-section-intro">直接使用現有畫面元件與樣式。收藏僅保留於各個預覽的記憶體中；不開啟鏡頭、不呼叫辨識服務。情境照片僅示範版面，並非物件裁切圖。</p><div className="vs-screen-grid">{[
+        ['home', '相機首頁', '鏡頭開關、橘色快門、收藏計數與今日尋寶。'],
+        ['printing', '出片與顯影', '相機上移，照片由出片槽送出；此處停留供檢視，可手動查看結果。'],
+        ['scene', '辨識結果', '拍立得照片、定位標記與可收藏的單字列表。'],
+        ['collection', '三欄收藏', '方形照片、英文與中文；可搜尋、切換列表及開啟詳情。'],
+        ['detail', '單字詳情', '前後切換、收藏與更多用法；原圖以巢狀對話框開啟。'],
+        ['quiz', '照片翻卡', '正面回想、背面解答；翻面 560ms、下一張滑入 600ms。'],
+      ].map(([screen, title, description]) => <article key={screen}><h3>{title}</h3><iframe title={`${title}互動預覽`} src={`/design-system/preview?screen=${screen}`} loading="lazy" allow="camera 'none'; microphone 'none'" /><p className="vs-caption">{description}</p><a className="vs-app-link" href={`/design-system/preview?screen=${screen}`} target="_blank" rel="noreferrer">單獨檢視 <ArrowUpRight /></a></article>)}</div></section>
+      <section id="patterns" className="vs-section"><div className="vs-section-heading"><h2>基礎元件的互動範例。</h2><span>Patterns in context</span></div><p className="vs-section-intro">以下為基礎元件組合示例；正式版面與導覽以上方「目前畫面」為準。展示資料不會寫入你的單字收藏。</p><div className="vs-pattern-grid"><article className="vs-scene-demo"><h3>照片裡的發現</h3><div className="vs-scene-photo"><img src="/sample-images/cafe_scene.jpg" alt="咖啡館場景，點選標記可查看單字"/><PhotoMarker label="coffee" x={56} y={62} onClick={() => setSelected(0)}/><PhotoMarker label="plant" x={65} y={24} onClick={() => setSelected(1)}/><PhotoMarker label="table" x={22} y={76} onClick={() => setSelected(2)}/></div><div className="vs-scene-footer"><Camera/><span>每一次取景，都是一次發現。</span></div></article><article className="vs-detail-demo"><h3>一張值得留下的字卡</h3><Polaroid src={current.image} alt={`${current.chinese}的情境照片`} taped><div className="vs-word-heading"><h4 lang="en">{current.word}</h4><IconButton label={`播放 ${current.word} 發音`} onClick={() => speak(current.word)}><Volume2/></IconButton><IconButton label={saved.includes(current.word) ? `取消收藏 ${current.word}` : `收藏 ${current.word}`} aria-pressed={saved.includes(current.word)} onClick={() => toggleSave(current.word)}><Bookmark fill={saved.includes(current.word) ? 'currentColor' : 'none'}/></IconButton></div><p className="vs-ipa">{current.ipa}</p><p>{current.chinese}</p><div className="vs-flex vs-spaced"><Tag>n. 名詞</Tag><Tag tone="blue">{current.category}</Tag></div><p className="vs-example" lang="en">{current.example}</p><p className="vs-caption">{current.translation}</p></Polaroid><div className="vs-card-pagination"><IconButton label="上一張單字卡" onClick={() => setSelected(index => (index + words.length - 1) % words.length)}><ChevronLeft/></IconButton><span>{selected + 1} / {words.length}</span><IconButton label="下一張單字卡" onClick={() => setSelected(index => (index + 1) % words.length)}><ChevronRight/></IconButton></div></article><article className="vs-collection-demo"><h3>我的單字 <span>{saved.length} 已收藏</span></h3><div className="vs-collection-list">{filtered.length ? filtered.map(item => <WordRow key={item.word} image={item.image} word={item.word} translation={item.chinese} onSpeak={() => speak(item.word)} action={<IconButton label={`${saved.includes(item.word) ? '取消收藏' : '收藏'} ${item.word}`} aria-pressed={saved.includes(item.word)} onClick={() => toggleSave(item.word)}>{saved.includes(item.word) ? <Check/> : <Plus/>}</IconButton>}/>) : <div className="vs-empty"><Search/><p>找不到符合的單字</p><Button variant="ghost" onClick={() => { setQuery(''); setCategory('全部'); }}>清除搜尋與分類</Button></div>}</div><p className="vs-caption">上方搜尋與分類可篩選此列表。</p><div className="vs-capture-demo"><ShutterButton onClick={() => { document.getElementById("screens")?.scrollIntoView(); setNotice("正式介面以獨立相機按鈕返回拍照，請於目前畫面區體驗。"); }} /></div></article></div><p className="vs-live" role="status">{notice}</p></section>
+      <section id="principles" className="vs-section"><div className="vs-section-heading"><h2>溫度來自細節，清楚來自克制。</h2><span>Design principles</span></div><div className="vs-principles"><div><h3>照片是主角</h3><p>用真實場景引導學習。紙框與紙膠帶只作陪襯，文字區保持乾淨。</p></div><div><h3>操作有一致的節奏</h3><p>以 4px 為間距基準，操作區至少 44px。選取、焦點與停用都有清楚差異。</p></div><div><h3>舒適優先於裝飾</h3><p>對比足夠、鍵盤可用、支援減少動態。手寫字只用於短註記與例句。</p></div></div></section>
+      <footer className="vs-footer"><span>Words in Life · Design system v0.5</span><span>Another perspective. A brighter you.</span></footer>
+    </main></div>
+  </div>;
+}

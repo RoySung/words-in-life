@@ -1,0 +1,58 @@
+/* Words in Life · Instant memories. Primitive → semantic → component. */
+.vs-theme {
+  --vs-cream: #f3eadb;
+  --vs-paper: #fff9ef;
+  --vs-sand: #e8dac5;
+  --vs-coffee: #6c503c;
+  --vs-espresso: #302820;
+  --vs-orange: #f47732;
+  --vs-rust: #a64016;
+  --vs-blue: #426775;
+  --vs-bg: var(--vs-cream);
+  --vs-surface: var(--vs-paper);
+  --vs-text: var(--vs-espresso);
+  --vs-muted: #756453;
+  --vs-border: #d8c8b1;
+  --vs-action: var(--vs-orange);
+  --vs-action-text: #302820;
+  --vs-focus: var(--vs-blue);
+  --vs-error: #a53726;
+  --vs-success: #466744;
+  --vs-space-1: 4px;
+  --vs-space-2: 8px;
+  --vs-space-3: 12px;
+  --vs-space-4: 16px;
+  --vs-space-5: 24px;
+  --vs-space-6: 32px;
+  --vs-space-7: 48px;
+  --vs-space-8: 64px;
+  --vs-radius-sm: 6px;
+  --vs-radius-md: 12px;
+  --vs-radius-lg: 24px;
+  --vs-radius-pill: 999px;
+  --vs-shadow-paper: 0 8px 22px #49311c1c, 0 2px 4px #49311c12;
+  --vs-shadow-raised: 0 16px 40px #49311c26;
+  --vs-font-body: 'Noto Sans TC', sans-serif;
+  --vs-font-latin: 'Plus Jakarta Sans', sans-serif;
+  --vs-font-note: 'Kalam', 'Noto Sans TC', cursive;
+  --vs-duration: 160ms;
+  --vs-ease: cubic-bezier(.16, 1, .3, 1);
+  color: var(--vs-text);
+  background: var(--vs-bg);
+  font: 400 15px/1.65 var(--vs-font-body);
+  accent-color: var(--vs-rust);
+  caret-color: var(--vs-rust);
+  scrollbar-color: var(--vs-coffee) var(--vs-cream);
+}
+.vs-theme *, .vs-theme *::before, .vs-theme *::after { box-sizing: border-box; }
+.vs-theme ::selection { background: var(--vs-sand); color: var(--vs-text); }
+.vs-theme :focus-visible { outline: 3px solid var(--vs-focus); outline-offset: 4px; }
+.vs-theme h1, .vs-theme h2, .vs-theme h3 { font-family: var(--vs-font-body); color: inherit; }
+.vs-theme button, .vs-theme input { font: inherit; }
+.vs-theme button { cursor: pointer; }
+.vs-theme button:disabled { cursor: not-allowed; }
+.vs-theme a { color: inherit; text-underline-offset: 5px; }
+.vs-theme svg { width: 20px; height: 20px; stroke-width: 1.7; flex-shrink: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .vs-theme *, .vs-theme *::before, .vs-theme *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

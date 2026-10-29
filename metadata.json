@@ -1,0 +1,11 @@
+{
+  "name": "Words in Life",
+  "description": "Words in Life，拍下生活，發現單字。用 AI 辨識生活照片中的物品，搭配繁中翻譯、音標、發音與例句，收藏照片單字卡，透過翻卡複習與每日尋寶學英文。",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

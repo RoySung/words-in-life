@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Words in Life 專案互動文件：功能、程式架構、資料流程、目錄與開發指南。">
+  <meta name="theme-color" content="#f3eadb">
+  <title>Words in Life — 專案導覽</title>
+  <style>
+    :root { color-scheme: light; --bg:#f3eadb; --paper:#fff9ef; --sand:#e8dac5; --coffee:#6c503c; --text:#302820; --muted:#756453; --line:#d8c8b1; --orange:#f47732; --rust:#a64016; --blue:#426775; --green:#466744; --ease:cubic-bezier(.16,1,.3,1); }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; scroll-padding-top:32px; scrollbar-color:var(--coffee) var(--bg); }
+    body { margin:0; background:var(--bg); color:var(--text); font:16px/1.8 'Noto Sans TC',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+    ::selection { background:var(--sand); color:var(--text); }
+    :focus-visible { outline:3px solid var(--blue); outline-offset:4px; }
+    a { color:var(--rust); text-underline-offset:5px; }
+    button,input { font:inherit; }
+    button { cursor:pointer; }
+    button:disabled { cursor:default; opacity:.45; }
+    button,a,input,summary { -webkit-tap-highlight-color:transparent; }
+    button { color:inherit; }
+    h1,h2,h3,p,figure { margin:0; }
+    h1,h2,h3 { line-height:1.35; text-wrap:balance; }
+    h1 { font-size:clamp(2.3rem,4.5vw,3.8rem); font-weight:750; letter-spacing:-.035em; max-width:14ch; }
+    h2 { font-size:clamp(1.65rem,2.7vw,2.1rem); letter-spacing:-.025em; }
+    h3 { font-size:1.13rem; }
+    p { max-width:72ch; }
+    code { font: .87em/1.65 ui-monospace,SFMono-Regular,Consolas,monospace; overflow-wrap:anywhere; }
+    p code,li code,td code { background:var(--sand); padding:2px 5px; border-radius:4px; }
+    ul { padding-left:1.3em; margin:12px 0 0; }
+    li+li { margin-top:8px; }
+    .skip { position:fixed; top:8px; left:8px; z-index:10; background:var(--paper); padding:8px 16px; transform:translateY(-160%); }
+    .skip:focus { transform:none; }
+    .shell { display:grid; grid-template-columns:238px minmax(0,1fr); max-width:1440px; margin:auto; }
+    .sidebar { position:sticky; top:0; height:100dvh; display:flex; flex-direction:column; padding:36px 24px 24px; border-right:1px solid var(--line); gap:32px; }
+    .brand { display:flex; align-items:center; gap:10px; color:var(--text); text-decoration:none; font-size:1.1rem; font-weight:750; letter-spacing:-.03em; }
+    .brand svg { width:30px; height:30px; flex-shrink:0; }
+    .sidebar-title { color:var(--muted); font-size:.82rem; margin:6px 0 0 40px; }
+    nav { display:flex; flex-direction:column; gap:4px; }
+    nav a { min-height:44px; display:flex; align-items:center; padding:8px 14px; text-decoration:none; color:var(--muted); border-radius:6px; font-size:.94rem; }
+    nav a:hover { color:var(--text); background:var(--sand); }
+    nav a[aria-current="location"] { background:var(--coffee); color:var(--paper); }
+    .sidebar-foot { margin-top:auto; font-size:.77rem; color:var(--muted); line-height:1.8; }
+    .sidebar-foot a { display:inline-block; margin-top:10px; font-size:.85rem; }
+    main { min-width:0; padding:64px clamp(24px,4.6vw,72px) 40px; }
+    .intro { padding-bottom:48px; }
+    .intro > p { margin-top:24px; font-size:1.08rem; color:var(--muted); max-width:44ch; }
+    .intro-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:28px; }
+    .button { min-height:44px; display:inline-flex; justify-content:center; align-items:center; gap:8px; border:0; padding:9px 18px; border-radius:8px; text-decoration:none; font-size:.9rem; font-weight:600; background:var(--sand); color:var(--text); }
+    .button.primary { background:var(--orange); }
+    .button:hover:not(:disabled) { background:var(--coffee); color:var(--paper); }
+    .meta { font-size:.77rem; color:var(--muted); margin-top:20px; }
+    section { padding:48px 0; border-top:1px solid var(--line); scroll-margin-top:0; }
+    .section-lead { color:var(--muted); margin-top:14px; margin-bottom:28px; }
+    .feature-list { margin:0; padding:0; list-style:none; }
+    .feature-list li { display:grid; grid-template-columns:140px minmax(0,1fr); gap:24px; padding:20px 0; border-bottom:1px solid var(--line); margin:0; }
+    .feature-list li:first-child { padding-top:0; }
+    .feature-list strong { font-weight:650; }
+    .feature-list p { color:var(--muted); font-size:.94rem; }
+    .note { margin-top:24px; padding:20px 24px; background:var(--sand); border-radius:8px; font-size:.91rem; }
+    .note strong { display:block; margin-bottom:4px; }
+    .stack-tags { display:flex; flex-wrap:wrap; gap:8px; margin-top:24px; }
+    .tag { display:inline-block; font-size:.76rem; color:var(--blue); border:1px solid var(--line); border-radius:4px; padding:2px 8px; }
+    .architecture { display:grid; grid-template-columns:minmax(245px,.9fr) minmax(0,1.1fr); gap:32px; align-items:start; }
+    .diagram { background:var(--paper); padding:24px; border-radius:12px; }
+    .layer { display:block; width:100%; text-align:left; background:var(--bg); border:1px solid var(--line); padding:12px 16px; border-radius:6px; min-height:64px; }
+    .layer strong { display:block; font-size:.95rem; }
+    .layer small { display:block; font-size:.72rem; color:var(--muted); }
+    .layer:hover { background:var(--sand); }
+    .layer[aria-pressed="true"] { background:var(--coffee); color:var(--paper); border-color:var(--coffee); }
+    .layer[aria-pressed="true"] small { color:var(--paper); }
+    .connector { height:27px; display:flex; align-items:center; justify-content:center; color:var(--coffee); }
+    .connector svg { width:16px; height:23px; }
+    .branches { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .branches .layer { padding:12px; }
+    .adapter { margin-top:12px; background:transparent; border-style:dashed; }
+    .composition { font-size:.76rem; margin-top:18px; color:var(--muted); }
+    .detail { padding:8px 0; min-height:365px; }
+    .detail h3 { font-size:1.45rem; margin-bottom:16px; }
+    .detail p { font-size:.95rem; }
+    .detail h4 { font-size:.8rem; color:var(--muted); margin:24px 0 8px; font-weight:500; }
+    .path-list { list-style:none; padding:0; margin:0; }
+    .path-list li { margin:4px 0; line-height:1.6; }
+    .path-list code { background:none; padding:0; color:var(--rust); font-size:.76rem; }
+    .dependency-note { font-size:.84rem; color:var(--muted); margin-top:20px; }
+    .segmented { display:flex; flex-wrap:wrap; gap:8px; margin:24px 0; }
+    .segmented button { background:transparent; border:1px solid var(--line); border-radius:6px; padding:8px 16px; min-height:44px; font-size:.9rem; }
+    .segmented button:hover { background:var(--sand); }
+    .segmented button[aria-pressed="true"] { background:var(--coffee); color:var(--paper); border-color:var(--coffee); }
+    .flow { background:var(--paper); border-radius:12px; padding:28px; }
+    .flow-description { font-size:.91rem; color:var(--muted); margin-bottom:24px; }
+    .steps { margin:0; padding:0; list-style:none; display:flex; gap:8px; flex-wrap:wrap; }
+    .steps li { flex:1 1 100px; margin:0; }
+    .steps button { display:flex; gap:10px; align-items:center; width:100%; height:100%; background:var(--bg); border:0; text-align:left; min-height:52px; border-radius:6px; padding:10px 12px; font-size:.82rem; }
+    .steps button span { color:var(--muted); font: .75rem/1.5 ui-monospace,monospace; }
+    .steps button:hover { background:var(--sand); }
+    .steps button[aria-current="step"] { background:var(--coffee); color:var(--paper); }
+    .steps button[aria-current="step"] span { color:var(--paper); }
+    .step-detail { padding:28px 0; min-height:225px; }
+    .step-detail h3 { margin-bottom:12px; font-size:1.25rem; }
+    .step-detail p { font-size:.94rem; }
+    .step-detail code { display:block; font-size:.76rem; margin-top:18px; color:var(--rust); }
+    .step-controls { display:flex; align-items:center; gap:12px; border-top:1px solid var(--line); padding-top:18px; }
+    .step-controls .step-position { margin-left:auto; color:var(--muted); font-size:.8rem; font-variant-numeric:tabular-nums; }
+    .flow-boundary { font-size:.86rem; margin-top:20px; color:var(--muted); }
+    .search-wrap { display:flex; gap:10px; align-items:center; margin:24px 0 10px; }
+    .search-label { display:block; font-size:.85rem; font-weight:600; }
+    .search-field { flex:1; display:flex; align-items:center; gap:12px; background:var(--paper); padding:0 16px; border:1px solid var(--line); border-radius:8px; }
+    .search-field svg { width:20px; height:20px; color:var(--muted); flex-shrink:0; }
+    input[type="search"] { min-width:0; width:100%; min-height:50px; background:transparent; border:0; color:var(--text); caret-color:var(--rust); }
+    input::placeholder { color:var(--muted); }
+    .search-field:focus-within { outline:3px solid var(--blue); outline-offset:3px; }
+    input[type="search"]:focus-visible { outline:none; }
+    .search-status { font-size:.8rem; color:var(--muted); margin-bottom:20px; }
+    details { border-bottom:1px solid var(--line); }
+    summary { padding:16px 0; cursor:pointer; font-weight:600; overflow-wrap:anywhere; }
+    summary::marker { color:var(--coffee); }
+    summary:hover { color:var(--rust); }
+    summary code { font-size:.87rem; margin-left:8px; }
+    summary .folder-purpose { margin-left:12px; font-size:.8rem; color:var(--muted); font-weight:400; }
+    .file-entry { display:grid; grid-template-columns:minmax(160px,.9fr) minmax(0,1.1fr); gap:20px; padding:12px 0 12px 22px; border-top:1px solid var(--line); font-size:.86rem; }
+    .file-entry > code { font-size:.75rem; color:var(--rust); align-self:start; }
+    .file-entry p { color:var(--muted); }
+    [hidden] { display:none !important; }
+    .empty { padding:32px 24px; background:var(--paper); border-radius:8px; }
+    .empty p { margin:6px 0 16px; color:var(--muted); font-size:.9rem; }
+    .table-wrap { overflow-x:auto; margin:24px 0; }
+    table { width:100%; border-collapse:collapse; font-size:.89rem; }
+    th { text-align:left; font-size:.8rem; color:var(--muted); font-weight:500; }
+    th,td { border-bottom:1px solid var(--line); padding:14px 16px 14px 0; vertical-align:top; }
+    td:first-child { width:27%; }
+    td:last-child,th:last-child { padding-right:0; }
+    .storage-layout { display:grid; grid-template-columns:1fr 1fr; gap:28px; margin-top:28px; }
+    .storage-layout h3 { margin-bottom:12px; }
+    .storage-layout p { font-size:.9rem; color:var(--muted); }
+    .storage-layout code { color:var(--text); }
+    .dev-steps { padding-left:22px; margin:24px 0; }
+    .dev-steps > li { padding-left:6px; margin-bottom:24px; }
+    .dev-steps p { font-size:.9rem; color:var(--muted); margin-top:6px; }
+    .command { display:flex; align-items:center; gap:16px; background:var(--paper); border-radius:8px; padding:12px 14px 12px 18px; margin-top:12px; }
+    .command code { flex:1; font-size:.83rem; background:none; padding:0; }
+    .command button { flex-shrink:0; background:var(--sand); border:0; min-height:44px; padding:8px 12px; border-radius:6px; font-size:.78rem; }
+    .command button:hover { background:var(--coffee); color:var(--paper); }
+    .check-list { list-style:none; padding:0; margin:24px 0; }
+    .check-list li { padding:16px 0; border-bottom:1px solid var(--line); margin:0; }
+    .check-list strong { display:block; margin-bottom:4px; font-size:.95rem; }
+    .check-list p { color:var(--muted); font-size:.88rem; }
+    footer { border-top:1px solid var(--line); padding-top:24px; display:flex; justify-content:space-between; gap:20px; color:var(--muted); font-size:.77rem; }
+    .sr-only { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media (max-width:1050px) { .shell { grid-template-columns:200px minmax(0,1fr); } .sidebar { padding:28px 16px; } main { padding:48px 28px 32px; } .architecture { grid-template-columns:1fr; gap:24px; } .detail { min-height:0; } }
+    @media (max-width:720px) {
+      html { scroll-padding-top:88px; }
+      .shell { display:block; }
+      .sidebar { z-index:5; height:auto; padding:12px 20px 0; gap:10px; background:var(--bg); border-right:0; border-bottom:1px solid var(--line); }
+      .brand { font-size:.95rem; } .brand svg { width:24px; height:24px; }
+      .sidebar-title,.sidebar-foot { display:none; }
+      nav { flex-direction:row; gap:4px; overflow-x:auto; margin:0 -20px; padding:0 20px 10px; }
+      nav a { flex-shrink:0; font-size:.8rem; min-height:38px; padding:6px 12px; }
+      main { padding:36px 20px 28px; }
+      .intro { padding-bottom:36px; } .intro > p { font-size:1rem; }
+      section { padding:36px 0; }
+      .feature-list li { grid-template-columns:1fr; gap:6px; padding:16px 0; }
+      .architecture { gap:20px; } .diagram { padding:18px; }
+      .flow { padding:20px; } .steps li { flex-basis:115px; }
+      .step-detail { min-height:280px; padding:24px 0; }
+      .step-controls { gap:8px; } .step-controls .button { padding:8px 12px; font-size:.82rem; }
+      .file-entry { grid-template-columns:1fr; gap:4px; padding:12px 0 12px 16px; }
+      summary .folder-purpose { display:block; margin-left:24px; margin-top:4px; }
+      .storage-layout { grid-template-columns:1fr; gap:24px; }
+      .note { padding:18px; } .table-wrap { font-size:.85rem; }
+      td:first-child { width:35%; } th,td { padding-right:10px; }
+      footer { flex-direction:column; gap:8px; }
+    }
+    @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } }
+    @media print {
+      body { background:white; color:black; font-size:10pt; } .shell { display:block; } .sidebar,.intro-actions,.search-wrap,.search-label,.segmented,.step-controls,.command button,.no-print { display:none; }
+      main { padding:0; } section { padding:20px 0; } .architecture { grid-template-columns:1fr 1fr; } .diagram,.flow,.command { background:#f5f1eb; } .detail { min-height:0; }
+      details { break-inside:avoid; } .file-entry { display:grid !important; } section,footer { border-color:#ccc; } h2,h3,summary { break-after:avoid; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">跳至文件內容</a>
+  <div class="shell">
+    <aside class="sidebar">
+      <div><a class="brand" href="#overview"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect x="3" y="8" width="26" height="20" rx="5" stroke="currentColor" stroke-width="1.7"/><path d="M10 8l2-4h8l2 4" stroke="currentColor" stroke-width="1.7"/><circle cx="16" cy="18" r="6" fill="#f47732" stroke="currentColor" stroke-width="1.7"/><path d="M25 12h1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Words in Life</a><p class="sidebar-title">專案互動文件</p></div>
+      <nav aria-label="文件章節">
+        <a href="#overview" aria-current="location">專案概覽</a>
+        <a href="#architecture">架構地圖</a>
+        <a href="#flows">資料如何流動</a>
+        <a href="#directory">程式目錄</a>
+        <a href="#storage">資料與儲存</a>
+        <a href="#development">開發與驗證</a>
+      </nav>
+      <div class="sidebar-foot">依據目前程式實作整理<br>文件基準：2026.10.27<br><a class="hosted-link" href="../../">開啟應用程式</a></div>
+    </aside>
+    <main id="main">
+      <header class="intro" id="overview">
+        <h1>從一張照片，<br>讀懂整個專案。</h1>
+        <p>Words in Life 把生活場景變成英文單字卡。這份文件帶你從使用者操作，走到辨識、學習規則與瀏覽器裡的資料。</p>
+        <div class="intro-actions"><a class="button primary" href="#architecture">探索架構</a><a class="button" href="#development">在本機啟動</a></div>
+        <div class="meta">繁體中文 · 可互動探索 · 單一 HTML，無外部依賴</div>
+      </header>
+
+      <section aria-labelledby="features-title">
+        <h2 id="features-title">它做了哪些事？</h2>
+        <p class="section-lead">拍攝、理解、收藏，再回來複習。主要功能串成一個學習循環。</p>
+        <ul class="feature-list">
+          <li><strong>拍照與辨識</strong><p>首頁開啟後置相機，也能選取圖片。實際照片透過 Gemini 取得場景、英文單字、中文、音標、例句與物件位置，再產生方形照片裁切。</p></li>
+          <li><strong>單字收藏</strong><p>從辨識結果收藏單字，以照片格狀或列表瀏覽。支援中英文搜尋、分類篩選、單字詳情、原圖與瀏覽器語音發音。</p></li>
+          <li><strong>翻卡複習</strong><p>先看物件照片回想單字，再翻面查看答案。每次回答記錄複習次數、記住次數、最近複習時間與記住比例。</p></li>
+          <li><strong>每日尋寶</strong><p>開啟任務時，AI 參考生活常見物件、時節與單字簿，安排一項複習與兩項新探索；空收藏時產生三項新探索。當日結果固定保存，缺 key 或生成失敗時使用本機備援題庫。三項全數完成才計入連續完成天數。</p></li>
+          <li><strong>範例與設定</strong><p>四組生活範例可直接體驗。設定頁讓使用者儲存或清除 Gemini API key；沒有 key 時仍可使用範例。</p></li>
+        </ul>
+        <div class="stack-tags" aria-label="主要技術"><span class="tag">React 19 + TypeScript</span><span class="tag">Vite 8</span><span class="tag">IndexedDB</span><span class="tag">Google GenAI SDK</span><span class="tag">Tailwind CSS 4 + Motion</span></div>
+        <div class="note"><strong>執行環境：使用者的瀏覽器</strong>這是可部署至靜態主機的前端專案。相機、照片處理、收藏與學習紀錄都在瀏覽器端運作；真實照片辨識與個人化任務生成會從瀏覽器直接呼叫 Google Gemini。</div>
+      </section>
+
+      <section id="architecture" aria-labelledby="architecture-title">
+        <h2 id="architecture-title">每一層，各司其職。</h2>
+        <p class="section-lead">點選架構節點，查看責任與程式位置。向下箭頭代表呼叫或程式依賴；儲存與 AI 實作遵循 Repository 契約。</p>
+        <div class="architecture">
+          <div class="diagram" role="group" aria-label="可點選的專案架構">
+            <button type="button" class="layer" data-layer="ui" aria-pressed="true" aria-controls="layer-detail"><strong>UI · 使用者介面</strong><small>App / Components / Design system</small></button>
+            <div class="connector" aria-hidden="true"><svg viewBox="0 0 16 24" fill="none"><path d="M8 0v21m-5-5 5 5 5-5" stroke="currentColor" stroke-width="1.5"/></svg></div>
+            <button type="button" class="layer" data-layer="hooks" aria-pressed="false" aria-controls="layer-detail"><strong>Hooks · 畫面狀態</strong><small>Library / Recognition / Collection / Missions</small></button>
+            <div class="connector" aria-hidden="true"><svg viewBox="0 0 16 24" fill="none"><path d="M8 0v21m-5-5 5 5 5-5" stroke="currentColor" stroke-width="1.5"/></svg></div>
+            <button type="button" class="layer" data-layer="usecases" aria-pressed="false" aria-controls="layer-detail"><strong>Usecases · 工作流程</strong><small>辨識、收藏、複習與任務</small></button>
+            <div class="connector" aria-hidden="true"><svg viewBox="0 0 16 24" fill="none"><path d="M8 0v21m-5-5 5 5 5-5" stroke="currentColor" stroke-width="1.5"/></svg></div>
+            <div class="branches">
+              <button type="button" class="layer" data-layer="domain" aria-pressed="false" aria-controls="layer-detail"><strong>Domain</strong><small>資料型別與純規則</small></button>
+              <button type="button" class="layer" data-layer="contracts" aria-pressed="false" aria-controls="layer-detail"><strong>Repository</strong><small>儲存、辨識與選題契約</small></button>
+            </div>
+            <button type="button" class="layer adapter" data-layer="adapters" aria-pressed="false" aria-controls="layer-detail"><strong>IndexedDB / Gemini</strong><small>實作 Repository 契約，依賴 Domain 型別與驗證</small></button>
+            <p class="composition"><code>createServices.ts</code> 組裝實作並注入 Usecases；<code>App.tsx</code> 建立與關閉服務。</p>
+          </div>
+          <div class="detail" id="layer-detail" aria-live="polite" aria-atomic="true">
+            <h3>UI · 使用者介面</h3><p>App 負責組合畫面與功能；元件呈現相機、辨識結果、收藏、翻卡與設定。Design system 提供共用的按鈕、照片框、標籤與樣式。</p>
+            <h4>主要檔案</h4><ul class="path-list"><li><code>src/App.tsx</code></li><li><code>src/components/</code></li><li><code>src/design-system/</code></li><li><code>src/styles/</code></li></ul>
+            <h4>適合在這裡修改</h4><p>畫面排版、互動入口、文案、可及性與共用元件樣式。</p>
+          </div>
+        </div>
+        <p class="dependency-note">這是核心路徑的簡化圖。現有 Hooks 也會呼叫照片處理工具與 Domain 規則；依賴方向的實際限制由 <code>tests/unit/architecture.test.ts</code> 檢查。</p>
+      </section>
+
+      <section id="flows" aria-labelledby="flows-title">
+        <h2 id="flows-title">一次操作，如何走完流程？</h2>
+        <p class="section-lead">選一條流程，再逐步查看每一段的輸入、處理方式與程式位置。這裡使用說明資料，不會啟動相機或呼叫 AI。</p>
+        <div class="segmented" role="group" aria-label="選擇資料流程">
+          <button type="button" data-flow="recognition" aria-pressed="true" aria-controls="flow-panel">照片辨識</button>
+          <button type="button" data-flow="collection" aria-pressed="false" aria-controls="flow-panel">收藏單字</button>
+          <button type="button" data-flow="review" aria-pressed="false" aria-controls="flow-panel">翻卡複習</button>
+          <button type="button" data-flow="missions" aria-pressed="false" aria-controls="flow-panel">每日任務</button>
+        </div>
+        <div class="flow" id="flow-panel">
+          <p class="flow-description" id="flow-description">從照片來源到場景結果；範例照片會略過 Gemini 請求。</p>
+          <ol class="steps" id="flow-steps" aria-label="流程步驟"></ol>
+          <div class="step-detail" id="step-detail" aria-live="polite" aria-atomic="true"></div>
+          <div class="step-controls"><button type="button" class="button" id="previous-step">上一步</button><button type="button" class="button primary" id="next-step">下一步</button><span class="step-position" id="step-position"></span></div>
+        </div>
+        <p class="flow-boundary" id="flow-boundary"></p>
+        <details><summary>AI 怎麼選出今天的任務？</summary><p>生成時只提供本機日期、月份、時區、最多 500 個已知單字名稱與 30 個複習候選摘要。候選優先考量尚未複習、記住比例偏低與久未複習；每項輸出包含提示、別名、分類與選題理由。任務文字請求不含照片。</p><p>System prompt 要求選擇容易拍攝的生活物件，適度參考時節，但不把時區當作所在地或天氣證據。新字不得與單字簿重複，別名只能指同一物件，例如 cup 不接受 coffee。程式驗證數量、格式、目標／別名不重疊及複習／新字比例；物件可取得性與別名語意仍取決於模型品質。</p><p>當日首次生成後固定保存；開始或完成任務後也不會更換目標。缺 key、無效回應或服務失敗會固定使用當日備援；當天補上 key 不會重抽。實際提示位於 <code>src/repository/gemini/missionRequest.ts</code>。</p><br></details>
+        <noscript><p class="note">啟用 JavaScript 可使用逐步導覽。核心流程：照片 → 壓縮 → Gemini 回應與驗證 → 物件裁切 → 場景畫面；收藏與複習經 Usecases 寫入 IndexedDB，任務依辨識結果更新。</p></noscript>
+      </section>
+
+      <section id="directory" aria-labelledby="directory-title">
+        <h2 id="directory-title">知道要改什麼，就知道去哪裡。</h2>
+        <p class="section-lead">依責任整理的主要目錄與檔案。展開查看內容，或搜尋檔名、功能與關鍵字。</p>
+        <label class="search-label" for="directory-search">搜尋程式目錄</label>
+        <div class="search-wrap"><div class="search-field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input type="search" id="directory-search" placeholder="例如：辨識、照片、repository" autocomplete="off" aria-describedby="search-status"></div><button type="button" class="button" id="clear-search">清除</button></div>
+        <p class="search-status" id="search-status" role="status">展開目錄可閱讀各檔案說明。</p>
+        <div id="directory-groups">
+          <details open><summary><code>src/</code><span class="folder-purpose">啟動、組裝與型別</span></summary>
+            <div class="file-entry"><code>main.tsx</code><p>依網址延遲載入應用程式或設計系統，掛載 React 與錯誤邊界。</p></div>
+            <div class="file-entry"><code>App.tsx</code><p>組合導航、相機、辨識、收藏、每日任務、設定與對話框。</p></div>
+            <div class="file-entry"><code>createServices.ts</code><p>建立 IndexedDB、照片 URL 管理與辨識依賴，組裝 Usecases，初始化範例單字。</p></div>
+            <div class="file-entry"><code>types.ts</code><p>提供畫面使用的資料型別，銜接核心資料與顯示用的圖片網址。</p></div>
+          </details>
+          <details><summary><code>src/domain/</code><span class="folder-purpose">純資料與業務規則</span></summary>
+            <div class="file-entry"><code>vocabulary.ts / photos.ts</code><p>定義單字、辨識物件與照片參照 PhotoRef，核心資料不依賴 React。</p></div>
+            <div class="file-entry"><code>missions.ts / missionPool.ts</code><p>日期、每日三項任務、名稱與別名比對，以及全部完成後的連續天數規則。</p></div>
+            <div class="file-entry"><code>missionGeneration.ts</code><p>建立有大小上限的單字／複習摘要，驗證 AI 任務的數量、別名重疊與一項複習／兩項新字規則。</p></div>
+            <div class="file-entry"><code>reviews.ts</code><p>根據記住或未記住，計算複習次數、記住次數與比例。</p></div>
+            <div class="file-entry"><code>recognition.ts / validation.ts</code><p>辨識結果型別、資料驗證、單字名稱正規化與位置等欄位檢查。</p></div>
+          </details>
+          <details><summary><code>src/usecases/</code><span class="folder-purpose">串起功能工作流程</span></summary>
+            <div class="file-entry"><code>createLibraryUsecases.ts / library.ts</code><p>初始化與組裝圖庫功能；讀取快照、做出變更，再提交交易，衝突最多嘗試三次。</p></div>
+            <div class="file-entry"><code>collection.ts / missions.ts</code><p>收藏、刪除、記錄複習、更新任務日期與完成任務。</p></div>
+            <div class="file-entry"><code>missionGeneration.ts</code><p>取得當日生成權、協調 AI 選題、25 秒期限、快取與失敗備援，避免晚到回應覆蓋任務進度。</p></div>
+            <div class="file-entry"><code>recognition.ts</code><p>協調照片壓縮、辨識契約、結果驗證與裁切，共用 25 秒期限及取消訊號。</p></div>
+          </details>
+          <details><summary><code>src/repository/</code><span class="folder-purpose">資料契約與瀏覽器儲存</span></summary>
+            <div class="file-entry"><code>LibraryRepository.ts / RecognitionRepository.ts / MissionGenerationRepository.ts</code><p>定義讀取、提交、照片載入、訂閱、照片辨識與文字任務生成的介面，以及共用錯誤代碼。</p></div>
+            <div class="file-entry"><code>indexedDbRepository.ts / database.ts</code><p>IndexedDB 交易、revision 衝突檢查、操作去重、照片引用計數與跨分頁通知。</p></div>
+            <div class="file-entry"><code>photos.ts / records.ts</code><p>照片 SHA-256 內容識別、Blob URL 共用與釋放，以及寫入資料的驗證。</p></div>
+          </details>
+          <details><summary><code>src/repository/gemini/</code><span class="folder-purpose">Google Gemini 邊界</span></summary>
+            <div class="file-entry"><code>geminiRepository.ts / client.ts</code><p>照片辨識；共用 client 負責讀取 key、SDK、模型 404 fallback、暫時性錯誤重試與錯誤轉換。</p></div>
+            <div class="file-entry"><code>request.ts / response.ts</code><p>建立提示與 JSON schema，將 AI 回應解碼成專案的辨識結果。</p></div>
+            <div class="file-entry"><code>missionRequest.ts / missionRepository.ts</code><p>個人化任務 system prompt、JSON schema、單字摘要請求與任務回應解碼。</p></div>
+          </details>
+          <details><summary><code>src/hooks/</code><span class="folder-purpose">React 生命週期</span></summary>
+            <div class="file-entry"><code>useLibrary.ts</code><p>初始化、載入、重新整理與錯誤狀態；訂閱圖庫變更，回到分頁時重新讀取。</p></div>
+            <div class="file-entry"><code>useLiveCamera.ts</code><p>相機串流啟動、權限與裝置錯誤，以及隱藏頁面或卸載後的串流清理。</p></div>
+            <div class="file-entry"><code>usePhotoUrl.tsx / useDialog.ts</code><p>照片 URL 租用與釋放、原生 dialog 開關及焦點還原。</p></div>
+          </details>
+          <details><summary><code>src/features/</code><span class="folder-purpose">功能 Hook 與相容匯出</span></summary>
+            <div class="file-entry"><code>recognition/useRecognition.ts</code><p>idle、analyzing、scene、failure 畫面狀態，辨識取消、舊請求防護與照片列印時序。</p></div>
+            <div class="file-entry"><code>collection/useCollection.ts</code><p>銜接收藏操作、照片準備、刪除與複習紀錄；initialWords.ts 提供四個初始範例單字。</p></div>
+            <div class="file-entry"><code>missions/useDailyMissions.ts</code><p>每 15 秒與回到前景時檢查日期；開啟任務面板才生成 AI 任務，並準備任務照片與提交完成結果。</p></div>
+            <div class="file-entry"><code>collection/review.ts / missions/rules.ts / missions/pool.ts / recognition/response.ts</code><p>保留既有匯入位置，重新匯出核心規則、資料池或辨識回應處理。</p></div>
+          </details>
+          <details><summary><code>src/components/</code><span class="folder-purpose">畫面與對話框</span></summary>
+            <div class="file-entry"><code>HomeView.tsx / SceneView.tsx</code><p>首頁相機、照片列印，以及帶物件標記的場景辨識結果。</p></div>
+            <div class="file-entry"><code>FavoritesView.tsx / WordDetailModal.tsx</code><p>收藏格狀與列表、搜尋篩選、單字詳情、前後切換與更多用法。</p></div>
+            <div class="file-entry"><code>FlashcardQuiz.tsx / DailyMissionSection.tsx / MissionSuccessModal.tsx</code><p>照片翻卡、每日尋寶清單與任務完成回饋。</p></div>
+            <div class="file-entry"><code>SettingsView.tsx / RecognitionFailureView.tsx / AppErrorBoundary.tsx</code><p>Gemini key 設定、辨識重試與應用程式錯誤恢復。</p></div>
+            <div class="file-entry"><code>PhotoSourceModal.tsx / CameraModal.tsx / AnalyzingView.tsx / Mascot.tsx</code><p>原始照片檢視與輔助元件。CameraModal、AnalyzingView 保留在程式中，現行主流程使用 HomeView。</p></div>
+          </details>
+          <details><summary><code>src/design-system/ + src/styles/</code><span class="folder-purpose">共用視覺語言</span></summary>
+            <div class="file-entry"><code>tokens.css / components.tsx / components.css</code><p>奶油紙色、咖啡棕、橘色、字級與間距，以及 Button、Polaroid、Tag 等元件。</p></div>
+            <div class="file-entry"><code>foundation.css / application.css / base.css / composition.css</code><p>宣告樣式層順序，分開共用基底與應用畫面的相機、照片構圖。</p></div>
+            <div class="file-entry"><code>Showcase.tsx / Preview.tsx / showcase.css</code><p>互動元件目錄與重用正式畫面元件的記憶體範例預覽。</p></div>
+          </details>
+          <details><summary><code>src/utils/</code><span class="folder-purpose">圖片、語音與設定工具</span></summary>
+            <div class="file-entry"><code>imageCompressor.ts / stickerGenerator.ts / loadImage.ts</code><p>壓縮圖片、載入影像與依物件位置產生方形 JPEG 裁切；sticker 名稱沿用既有介面。</p></div>
+            <div class="file-entry"><code>audio.ts / wordCategory.ts</code><p>瀏覽器語音與音效；依英文關鍵字分類，未命中時歸入其他。</p></div>
+            <div class="file-entry"><code>geminiSettings.ts / errorMessage.ts</code><p>讀寫本機 Gemini key，將錯誤代碼轉成可讀的繁體中文訊息。</p></div>
+          </details>
+          <details><summary><code>src/data/ + src/assets/ + public/</code><span class="folder-purpose">範例與靜態資源</span></summary>
+            <div class="file-entry"><code>src/data/sampleScenes.ts / dailyMissions.ts / failureScenarios.ts</code><p>範例場景與單字、任務資料匯出、失敗畫面範例。</p></div>
+            <div class="file-entry"><code>src/assets/images/ / public/sample-images/</code><p>咖啡館、美食、街景與書桌照片。public 下的圖片直接以靜態路徑使用。</p></div>
+            <div class="file-entry"><code>public/design-system/ / public/docs/index.html</code><p>紙張紋理與本份互動文件；Vite 建置時會將 public 內容複製至 dist。</p></div>
+          </details>
+          <details><summary><code>tests/</code><span class="folder-purpose">核心契約與瀏覽器驗證</span></summary>
+            <div class="file-entry"><code>unit/ / helpers/ / run-unit.mjs</code><p>Domain、Usecases 與依賴邊界測試；記憶體 Repository 與可重用的圖庫契約。</p></div>
+            <div class="file-entry"><code>storage-flow.cjs / gemini-contract.cjs / reliability-flow.cjs</code><p>真實 IndexedDB、衝突與交易回滾、模擬 Gemini 請求與錯誤、日期切換。</p></div>
+            <div class="file-entry"><code>unit/missionGeneration.test.ts / ai-missions-flow.cjs</code><p>個人化選題驗證、每日快取、逾時與跨日防護，以及真實 IndexedDB 兩分頁生成競態、生成中畫面與備援。</p></div>
+            <div class="file-entry"><code>ui-smoke.cjs / camera-flow.cjs / settings-flow.cjs / photo-transitions.cjs / quiz-motion.cjs</code><p>收藏與對話框、模擬相機、設定、照片過場與翻卡互動；run-e2e.mjs 負責啟動隔離測試伺服器。</p></div>
+          </details>
+          <details><summary><code>專案根目錄 + docs/architecture/</code><span class="folder-purpose">設定與設計紀錄</span></summary>
+            <div class="file-entry"><code>package.json / vite.config.ts / tsconfig.json / index.html</code><p>依賴與 npm 指令、Vite 外掛與別名、TypeScript 設定與主應用 HTML 入口。</p></div>
+            <div class="file-entry"><code>README.md / DESIGN.md / metadata.json</code><p>啟動與部署、共用視覺規範，以及應用中繼資料。</p></div>
+            <div class="file-entry"><code>docs/architecture/2026-10-27-refactor.md / 2026-10-27-storage-clean-architecture-plan.md</code><p>重構與儲存架構的設計紀錄。閱讀時以目前程式實作為準。</p></div>
+          </details>
+        </div>
+        <div class="empty" id="directory-empty" hidden><h3>找不到符合的檔案</h3><p>試試「照片」、「任務」或「repository」，也可以清除搜尋重新瀏覽。</p><button type="button" class="button" id="reset-search">顯示全部目錄</button></div>
+      </section>
+
+      <section id="storage" aria-labelledby="storage-title">
+        <h2 id="storage-title">單字與照片，分開保存。</h2>
+        <p class="section-lead">IndexedDB 資料庫 <code>words-in-life-storage</code> 使用六個 object store。一般快照只讀單字、學習狀態與版本；圖片顯示時才讀取 Blob。</p>
+        <div class="table-wrap"><table><caption class="sr-only">IndexedDB 儲存區與用途</caption><thead><tr><th scope="col">儲存區</th><th scope="col">內容與用途</th></tr></thead><tbody>
+          <tr><td><code>words</code></td><td>單字、例句、照片參照、收藏時間，以及各單字的複習統計。</td></tr>
+          <tr><td><code>learning</code></td><td>目前日期、三個任務、完成狀態、連續完成天數與最後完成日期；generation 保存生成權、AI／備援來源與固定狀態。</td></tr>
+          <tr><td><code>photos</code></td><td>以內容雜湊識別的照片 Blob，讓相同內容共用儲存。</td></tr>
+          <tr><td><code>photoMetadata</code></td><td>照片 MIME type、大小與引用次數。最後一個資料引用移除時刪除 Blob。</td></tr>
+          <tr><td><code>operations</code></td><td>commandId 對應的操作結果與版本，避免同一操作重複套用。</td></tr>
+          <tr><td><code>meta</code></td><td>全域 revision 與 initialized，供原子交易檢查版本與初始化狀態。</td></tr>
+        </tbody></table></div>
+        <div class="storage-layout">
+          <div><h3>照片怎麼找到？</h3><p><code>PhotoRef</code> 分成靜態資源路徑與已儲存照片 ID。已儲存照片使用 <code>photo:SHA-256</code> 作為內容 ID；元件經 URL 管理器取得共用 Blob URL，最後一個使用者釋放後回收 URL。刪除資料引用與釋放畫面 URL 是兩件事。</p></div>
+          <div><h3>多個分頁怎麼同步？</h3><p>每次提交都在交易內核對 <code>expectedRevision</code>。衝突時重新讀取、重算與提交，最多三次；成功後以 BroadcastChannel 通知其他分頁，頁面回到前景時也重新載入。</p></div>
+        </div>
+        <div class="note"><strong>本機設定與資料界線</strong>Words in Life 的資料庫與設定儲存鍵統一使用 words-in-life 命名空間，不讀取或遷移舊名稱的資料與設定。API key 存在 localStorage 的 <code>words-in-life-gemini-key-v1</code>；相機開關使用 <code>words-in-life-camera-enabled-v1</code>。儲存 key 不會驗證其有效性；實際辨識時照片與 key 會直接送往 Google，任務生成則傳送日期、時區與單字／複習摘要。專案目前沒有登入、雲端同步或資料匯入匯出功能。</div>
+        <details><summary>初始資料與舊版資料</summary><p>新資料庫首次初始化加入四個既有範例單字；刪空後重新載入仍保持空白。目前不讀取、遷移或清除舊名稱的資料庫與 localStorage；收藏、API key 與相機偏好皆使用新命名空間。</p><br></details>
+      </section>
+
+      <section id="development" aria-labelledby="development-title">
+        <h2 id="development-title">開始開發，也知道如何驗證。</h2>
+        <p class="section-lead">在已安裝 Node.js 的環境，於專案根目錄執行以下指令。點選「複製」可取得完整指令。</p>
+        <ol class="dev-steps">
+          <li><strong>安裝依賴</strong><div class="command"><code>npm install</code><button type="button" data-copy="npm install" aria-label="複製 npm install">複製</button></div></li>
+          <li><strong>啟動開發伺服器</strong><div class="command"><code>npm run dev</code><button type="button" data-copy="npm run dev" aria-label="複製 npm run dev">複製</button></div><p>開啟 <code>http://localhost:3000</code>。範例可直接體驗；實際照片辨識請先從首頁設定 Gemini API key。</p></li>
+          <li><strong>打開互動文件與元件目錄</strong><p>本文件位於 <code>/docs/index.html</code>；元件目錄位於 <code>/design-system</code>，隔離畫面預覽位於 <code>/design-system/preview</code>。</p><p class="hosted-link"><a href="../../design-system">查看設計系統</a></p></li>
+        </ol>
+        <h3>常用驗證指令</h3>
+        <ul class="check-list">
+          <li><strong>型別、核心測試與正式建置</strong><p>check 依序執行 lint、test 與 build；核心測試不需相機或 Gemini key。</p><div class="command"><code>npm run check</code><button type="button" data-copy="npm run check" aria-label="複製 npm run check">複製</button></div></li>
+          <li><strong>瀏覽器流程</strong><p>先安裝 Playwright Chromium，再執行 E2E；測試會啟動獨立伺服器與瀏覽器情境。</p><div class="command"><code>npx playwright install chromium</code><button type="button" data-copy="npx playwright install chromium" aria-label="複製 Chromium 安裝指令">複製</button></div><div class="command"><code>npm run test:e2e</code><button type="button" data-copy="npm run test:e2e" aria-label="複製 npm run test:e2e">複製</button></div></li>
+          <li><strong>正式輸出與本機預覽</strong><p>build 產生 <code>dist/</code>，包含本份文件；執行 preview 後使用終端顯示的網址檢查正式輸出。</p><div class="command"><code>npm run build</code><button type="button" data-copy="npm run build" aria-label="複製 npm run build">複製</button></div><div class="command"><code>npm run preview</code><button type="button" data-copy="npm run preview" aria-label="複製 npm run preview">複製</button></div></li>
+        </ul>
+        <div class="note"><strong>部署與測試範圍</strong>靜態主機部署 <code>dist/</code>，並為設計系統路由設定回退至 <code>index.html</code>。相機需要 HTTPS 或 localhost。模擬 Gemini 與相機測試涵蓋程式流程；實際模型可用性、相機硬體與語音仍需在目標環境驗證。</div>
+        <details><summary>修改後，如何更新這份文件？</summary><p>編輯 <code>public/docs/index.html</code> 中的說明、目錄與 <code>layers</code>、<code>flows</code> 資料，並更新文件基準日期。它是依程式整理的人工維護文件，不會自動掃描原始碼。檢查桌面與手機的節點切換、流程、搜尋、鍵盤操作與複製功能，再執行建置。</p><br></details>
+      </section>
+      <footer><span>Words in Life · 讓生活成為單字本。</span><a href="#overview">回到文件開頭</a></footer>
+    </main>
+  </div>
+  <p class="sr-only" id="copy-status" role="status"></p>
+  <noscript><p class="note">JavaScript 未啟用。仍可閱讀專案說明、展開目錄與儲存文件；互動架構、流程切換、搜尋與複製需啟用 JavaScript。</p></noscript>
+  <script>
+    'use strict';
+    const layers = {
+      ui: { title:'UI · 使用者介面', description:'App 負責組合畫面與功能；元件呈現相機、辨識結果、收藏、翻卡與設定。Design system 提供共用的按鈕、照片框、標籤與樣式。', paths:['src/App.tsx','src/components/','src/design-system/','src/styles/'], change:'畫面排版、互動入口、文案、可及性與共用元件樣式。' },
+      hooks: { title:'Hooks · 畫面狀態', description:'將 React 的生命週期與功能狀態連到 Usecases。管理載入、錯誤、辨識取消、任務日期更新與照片 URL；辨識 Hook 同時協調照片列印與過場。', paths:['src/hooks/useLibrary.ts','src/hooks/usePhotoUrl.tsx','src/hooks/useLiveCamera.ts','src/features/recognition/useRecognition.ts','src/features/collection/useCollection.ts','src/features/missions/useDailyMissions.ts'], change:'畫面狀態轉換、服務訂閱、取消流程、相機清理與功能操作的 UI 銜接。' },
+      usecases: { title:'Usecases · 工作流程', description:'以注入的 Repository 與工具協調任務。辨識流程負責壓縮、呼叫、驗證與裁切；圖庫流程讀取快照、套用規則，再提交變更；任務生成流程負責當日權限、個人化選題與備援。儲存衝突不會重送 AI 請求。', paths:['src/usecases/createLibraryUsecases.ts','src/usecases/library.ts','src/usecases/collection.ts','src/usecases/missions.ts','src/usecases/missionGeneration.ts','src/usecases/recognition.ts'], change:'跨步驟的功能流程、取消與期限、變更決策及衝突重試。以注入的時間與 ID 產生器支援測試。' },
+      domain: { title:'Domain · 純規則', description:'定義單字、照片參照、辨識與任務資料。以純函式處理驗證、每日任務產生與匹配、日期切換，以及複習統計。這一層不匯入 React、IndexedDB 或 Gemini SDK。', paths:['src/domain/vocabulary.ts','src/domain/photos.ts','src/domain/recognition.ts','src/domain/validation.ts','src/domain/missions.ts','src/domain/reviews.ts','src/domain/missionPool.ts'], change:'單字資料模型、任務與連續天數規則、資料驗證及複習計算。' },
+      contracts: { title:'Repository · 能力契約', description:'LibraryRepository 定義快照讀取、原子提交、照片讀取與訂閱；RecognitionRepository 定義照片辨識；MissionGenerationRepository 定義單字摘要輸入與任務輸出。Usecases 透過契約使用儲存與 AI 能力。', paths:['src/repository/LibraryRepository.ts','src/repository/RecognitionRepository.ts','src/repository/MissionGenerationRepository.ts','tests/helpers/InMemoryLibraryRepository.ts','tests/helpers/libraryContract.ts'], change:'調整功能需要的資料存取能力與錯誤代碼；修改時需同步更新實作與共用契約測試。' },
+      adapters: { title:'實作 · IndexedDB 與 Gemini', description:'IndexedDB 實作版本檢查、交易、照片引用與變更通知；Gemini 實作 SDK 請求、schema、回應解碼、fallback 與錯誤轉換。createServices 將它們注入 Usecases，Gemini SDK 在實際辨識或有 key 的任務生成時才載入。', paths:['src/createServices.ts','src/repository/indexedDbRepository.ts','src/repository/database.ts','src/repository/photos.ts','src/repository/gemini/client.ts','src/repository/gemini/geminiRepository.ts','src/repository/gemini/missionRequest.ts','src/repository/gemini/missionRepository.ts'], change:'資料庫交易、圖片資源管理、模型呼叫、任務 system prompt 與服務錯誤處理。' }
+    };
+    const flows = {
+      recognition: { description:'從照片來源到場景結果；範例照片會略過 Gemini 請求。', boundary:'辨識工作共用 25 秒期限與 AbortSignal；取消或新的請求會使舊結果失效。辨識成功後顯示場景，再交由任務流程檢查完成狀態。', steps:[
+        ['取得照片','相機或檔案 → 畫面狀態','App 接收拍照或圖片選取結果；真實照片會先檢查是否已設定 Gemini key。useRecognition 建立取消控制器並進入 analyzing，開始照片列印效果。','src/App.tsx · src/features/recognition/useRecognition.ts'],
+        ['壓縮圖片','照片來源 → 圖片位元組','辨識 Usecase 呼叫注入的壓縮工具，使用 1280 與 0.85 品質參數，再將壓縮結果轉成 bytes 與 MIME type。範例場景會直接使用預先定義的辨識資料。','src/createServices.ts · src/utils/imageCompressor.ts'],
+        ['辨識與驗證','圖片位元組 → 場景與物件','Gemini Repository 建立 JSON schema 請求並解碼回應，Usecase 再驗證每個單字。404 可切換下一個設定模型；暫時性錯誤最多額外重試一次，其他錯誤轉成專案錯誤。','src/repository/gemini/ · src/usecases/recognition.ts'],
+        ['裁切照片','場景物件 → 方形裁切','依回應中的物件位置批次產生 JPEG 裁切，合併場景標題、說明、單字、原圖、時間與 analysisId。裁切與辨識共用同一個期限與取消訊號。','src/utils/stickerGenerator.ts · src/usecases/recognition.ts'],
+        ['呈現場景','SceneResult → scene 畫面','Hook 等待列印效果後顯示場景結果；只有目前請求可以更新畫面。物件標記與單字清單由 SceneView 呈現，使用者可查看詳情或收藏。','src/features/recognition/useRecognition.ts · src/components/SceneView.tsx']
+      ] },
+      collection: { description:'把辨識結果中的單字與照片參照，一起存進本機收藏。', boundary:'照片引用、單字與操作結果在同一個 IndexedDB 交易內更新。容量不足或交易中止時回滾，錯誤交回畫面顯示。', steps:[
+        ['準備照片','單字與圖片 → PhotoRef','useCollection 將原圖與裁切交給 preparePhoto。靜態路徑保留為 asset；其他圖片取得位元組並以 SHA-256 產生內容 ID，回傳 stored 參照與待寫入照片。','src/features/collection/useCollection.ts · src/repository/photos.ts'],
+        ['產生變更','快照 → ChangeSet','saveWord 產生收藏欄位，經共用執行器讀取圖庫快照並決定變更。以 commandId 識別操作，以 expectedRevision 指定讀到的資料版本。','src/usecases/collection.ts · src/usecases/library.ts'],
+        ['原子提交','ChangeSet → 已提交版本','Repository 先查操作是否已套用，再檢查版本；更新單字、照片 Blob 與引用計數，最後保存操作結果並增加 revision。版本衝突會重讀與重算，最多三次。','src/repository/indexedDbRepository.ts'],
+        ['更新畫面','新快照 → 收藏清單','提交成功後發出本分頁及跨分頁通知。useLibrary 重新讀取快照；圖片元件在需要顯示時租用共用 Blob URL，卸載時釋放。','src/hooks/useLibrary.ts · src/hooks/usePhotoUrl.tsx']
+      ] },
+      review: { description:'從回想照片到記錄回答，複習過程沿用同一組圖庫契約。', boundary:'masteryScore 是記住次數占總複習次數的四捨五入百分比。目前沒有間隔重複排程；複習更新不會讀寫照片 Blob。', steps:[
+        ['回想與翻卡','收藏單字 → 回答','FlashcardQuiz 正面顯示照片與回想提示，背面顯示單字、音標、翻譯與例句。使用者選擇「記住了」或尚未記住，再進入下一張。','src/components/FlashcardQuiz.tsx'],
+        ['計算統計','回答 → 更新後的 Word','recordReview 固定本次時間並在快照中尋找單字；reviewWord 將 reviewCount 加一、依回答更新 rememberedCount，同時計算比例與最近複習時間。','src/usecases/collection.ts · src/domain/reviews.ts'],
+        ['保存回答','Word → 本機紀錄','提交更新的單字與操作結果。既有照片參照沒有改變，引用差額為零，不需讀取或重寫 Blob；版本衝突則重讀後再次計算。','src/usecases/library.ts · src/repository/indexedDbRepository.ts']
+      ] },
+      missions: { description:'AI 依生活物件、時節與單字簿安排今日任務，再以照片辨識結果判斷完成。', boundary:'當天結果固定，缺 key 或生成失敗使用備援。每次辨識最多完成一個未完成任務，三項全數完成才更新連續天數；範例辨識也適用。', steps:[
+        ['確認日期','本機日期 → 當日狀態','Hook 每 15 秒、視窗 focus 或頁面回到前景時檢查日期。跨日建立 pending 狀態與三個備援目標；已生成的當日內容與進度不重置。只有開啟今日尋寶時才啟動 AI 選題。','src/features/missions/useDailyMissions.ts · src/domain/missions.ts'],
+        ['取得生成權','IndexedDB → 當日唯一請求','Usecase 用 revision 交易保存 requestId 與開始時間，多分頁只有取得權限者呼叫 AI。有效權限下其他分頁等待結果；被中斷的權限超過 30 秒，在下次檢查時固定為備援。','src/usecases/missionGeneration.ts'],
+        ['個人化選題','單字摘要 → 一項複習、兩項新字','傳送日期、月份、時區、最多 500 個已知字與 30 個複習候選，沒有照片。Gemini 以獨立 system prompt 回傳三個物件、提示與選題理由；空收藏時為三項新字。程式驗證結果，失敗使用備援。','src/domain/missionGeneration.ts · src/repository/gemini/missionRequest.ts'],
+        ['保存與固定','生成結果 → 當日任務','以日期與 requestId 檢查後保存 AI 或備援結果，重整與收藏變更不重抽。開始或完成任務也會固定當天目標；晚到結果不得覆蓋。任務請求有 25 秒期限，DB 衝突不重送 AI。','src/usecases/missionGeneration.ts · src/usecases/missions.ts'],
+        ['比對物件','辨識單字 → 命中目標','成功的辨識結果交給任務流程。以物件 word 與任務 targetWord、synonyms 做正規化後的精確匹配，例句中的字不計入。優先檢查使用者選取的未完成任務。','src/usecases/missions.ts · src/domain/missions.ts'],
+        ['儲存完成','命中任務 → 任務狀態','寫入完成時間、原圖與裁切參照；若當天三項全數完成，更新連續完成天數。以 analysisId 建立操作 ID，避免同一辨識重複套用。','src/usecases/missions.ts · src/repository/indexedDbRepository.ts'],
+        ['顯示回饋','提交結果 → 完成提示','從提交結果找出實際完成的任務與命中物件，再顯示完成提示。儲存失敗透過圖庫錯誤狀態回報，已取得的辨識場景仍可留在畫面。','src/features/missions/useDailyMissions.ts · src/App.tsx']
+      ] }
+    };
+
+    function element(tag, text, className) {
+      const node = document.createElement(tag);
+      if (text !== undefined) node.textContent = text;
+      if (className) node.className = className;
+      return node;
+    }
+    document.querySelectorAll('[data-layer]').forEach(button => button.addEventListener('click', () => {
+      document.querySelectorAll('[data-layer]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+      const data = layers[button.dataset.layer];
+      const paths = element('ul', undefined, 'path-list');
+      data.paths.forEach(path => { const li = element('li'); li.append(element('code', path)); paths.append(li); });
+      document.getElementById('layer-detail').replaceChildren(element('h3', data.title), element('p', data.description), element('h4', '主要檔案'), paths, element('h4', '適合在這裡修改'), element('p', data.change));
+    }));
+
+    let activeFlow = 'recognition';
+    let activeStep = 0;
+    function renderStep() {
+      const data = flows[activeFlow];
+      const step = data.steps[activeStep];
+      document.querySelectorAll('[data-step]').forEach(button => {
+        if (Number(button.dataset.step) === activeStep) button.setAttribute('aria-current', 'step');
+        else button.removeAttribute('aria-current');
+      });
+      document.getElementById('step-detail').replaceChildren(element('h3', step[1]), element('p', step[2]), element('code', step[3]));
+      document.getElementById('step-position').textContent = `${activeStep + 1} / ${data.steps.length}`;
+      document.getElementById('previous-step').disabled = activeStep === 0;
+      document.getElementById('next-step').disabled = activeStep === data.steps.length - 1;
+    }
+    function renderFlow() {
+      const data = flows[activeFlow];
+      document.getElementById('flow-description').textContent = data.description;
+      document.getElementById('flow-boundary').textContent = data.boundary;
+      const list = document.getElementById('flow-steps');
+      list.replaceChildren();
+      data.steps.forEach((step, index) => {
+        const li = element('li');
+        const button = element('button'); button.type = 'button'; button.dataset.step = index;
+        button.setAttribute('aria-controls', 'step-detail'); button.setAttribute('aria-label', `第 ${index + 1} 步：${step[0]}`);
+        button.append(element('span', String(index + 1).padStart(2, '0')), document.createTextNode(step[0]));
+        button.addEventListener('click', () => { activeStep = index; renderStep(); });
+        li.append(button); list.append(li);
+      });
+      renderStep();
+    }
+    document.querySelectorAll('[data-flow]').forEach(button => button.addEventListener('click', () => {
+      activeFlow = button.dataset.flow; activeStep = 0;
+      document.querySelectorAll('[data-flow]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+      renderFlow();
+    }));
+    ['previous-step', 'next-step'].forEach(id => document.getElementById(id).addEventListener('click', () => {
+      const oldStep = activeStep;
+      activeStep = Math.max(0, Math.min(flows[activeFlow].steps.length - 1, activeStep + (id === 'next-step' ? 1 : -1)));
+      renderStep();
+      // Keep keyboard focus in the controls when the activated endpoint becomes disabled.
+      if (activeStep !== oldStep && document.getElementById(id).disabled) document.getElementById(id === 'next-step' ? 'previous-step' : 'next-step').focus({ preventScroll:true });
+    }));
+    renderFlow();
+
+    const search = document.getElementById('directory-search');
+    const groups = [...document.querySelectorAll('#directory-groups details')];
+    const fileCount = document.querySelectorAll('.file-entry').length;
+    const previousOpen = new Map();
+    let searching = false;
+    function filterDirectory() {
+      const query = search.value.trim().toLocaleLowerCase();
+      if (query && !searching) groups.forEach(group => previousOpen.set(group, group.open));
+      let total = 0;
+      groups.forEach(group => {
+        const folder = group.querySelector('summary').textContent.toLocaleLowerCase();
+        let matches = 0;
+        group.querySelectorAll('.file-entry').forEach(entry => {
+          const match = !query || `${folder} ${entry.textContent}`.toLocaleLowerCase().includes(query);
+          entry.hidden = !match;
+          if (match) matches++;
+        });
+        group.hidden = matches === 0; total += matches;
+        if (query) group.open = matches > 0;
+        else if (searching) group.open = previousOpen.get(group) || false;
+      });
+      searching = Boolean(query);
+      document.getElementById('search-status').textContent = query ? `找到 ${total} / ${fileCount} 組檔案說明` : `共 ${groups.length} 組目錄、${fileCount} 組檔案說明；展開目錄可閱讀。`;
+      document.getElementById('directory-empty').hidden = total > 0;
+      document.getElementById('clear-search').disabled = !search.value;
+    }
+    search.addEventListener('input', filterDirectory);
+    ['clear-search', 'reset-search'].forEach(id => document.getElementById(id).addEventListener('click', () => { search.value = ''; filterDirectory(); search.focus(); }));
+    filterDirectory();
+
+    document.querySelectorAll('[data-copy]').forEach(button => button.addEventListener('click', async () => {
+      const command = button.dataset.copy;
+      const status = document.getElementById('copy-status');
+      try {
+        if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(command);
+        else {
+          const field = element('textarea', command); field.className = 'sr-only'; field.setAttribute('aria-label', '待複製指令'); document.body.append(field);
+          try { field.select(); if (!document.execCommand('copy')) throw new Error('Copy unavailable'); }
+          finally { field.remove(); button.focus({ preventScroll:true }); }
+        }
+        button.textContent = '已複製'; status.textContent = `已複製：${command}`;
+      } catch {
+        button.textContent = '請手動複製'; status.textContent = `無法自動複製，請選取旁邊的指令：${command}`;
+      }
+      window.setTimeout(() => { button.textContent = '複製'; }, 2200);
+    }));
+
+    const navigation = [...document.querySelectorAll('nav a')];
+    function updateNavigation() {
+      const offset = window.innerWidth <= 720 ? 130 : 80;
+      let current = navigation[0];
+      navigation.forEach(link => { if (document.querySelector(link.hash).getBoundingClientRect().top <= offset) current = link; });
+      navigation.forEach(link => {
+        if (link === current) link.setAttribute('aria-current', 'location');
+        else link.removeAttribute('aria-current');
+      });
+    }
+    let scheduled = false;
+    window.addEventListener('scroll', () => { if (!scheduled) { scheduled = true; requestAnimationFrame(() => { updateNavigation(); scheduled = false; }); } }, { passive:true });
+    window.addEventListener('resize', updateNavigation);
+    updateNavigation();
+    if (location.protocol === 'file:') document.querySelectorAll('.hosted-link').forEach(link => { link.hidden = true; });
+    let printState;
+    window.addEventListener('beforeprint', () => {
+      printState = [...document.querySelectorAll('details')].map(detail => [detail, detail.open, detail.hidden]);
+      printState.forEach(([detail]) => { detail.open = true; detail.hidden = false; });
+    });
+    window.addEventListener('afterprint', () => { printState?.forEach(([detail, open, hidden]) => { detail.open = open; detail.hidden = hidden; }); });
+  </script>
+</body>
+</html>

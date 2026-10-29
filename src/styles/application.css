@@ -1,0 +1,8 @@
+/* Explicit cascade ownership: component foundations, then application composition. */
+@layer app-base, app-composition;
+@import './base.css' layer(app-base);
+@import './composition.css' layer(app-composition);
+
+.storage-notice { position: fixed; left: 16px; right: 16px; bottom: 12px; z-index: 100; max-width: 520px; margin: auto; padding: 12px 16px; background: var(--vs-paper, #fff9ef); color: var(--vs-text, #302820); border: 1px solid var(--vs-action, #c56b38); border-radius: 12px; box-shadow: 0 3px 16px #30282030; }
+.storage-notice p { margin: 0; }
+.storage-notice button { margin-top: 8px; text-decoration: underline; }

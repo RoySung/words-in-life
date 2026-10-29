@@ -1,0 +1,3 @@
+@layer vs-tokens, vs-components, app-base, app-composition;
+@import './tokens.css' layer(vs-tokens);
+@import './components.css' layer(vs-components);

@@ -1,0 +1,15 @@
+{
+  "name": "Words in Life",
+  "short_name": "Words in Life",
+  "description": "拍下生活，發現單字。用 AI 探索生活中的英文單字，收藏照片單字卡，透過翻卡複習與每日尋寶持續學習。",
+  "lang": "zh-TW",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FFF9F3",
+  "theme_color": "#F3EADB",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
