@@ -6,6 +6,9 @@ const assert = require('node:assert/strict');
   try {
     for (const reducedMotion of ['no-preference', 'reduce']) {
       const page = await browser.newPage({viewport:{width:390,height:844}, reducedMotion});
+      // Completion is persisted after the scene appears, so the dialog can arrive
+      // after an immediate isVisible check. Dismiss it when it blocks an action.
+      await page.addLocatorHandler(page.getByRole('button', { name: '繼續探索照片' }), async button => button.click());
       const errors = [];
       page.on('pageerror', e => errors.push(e.message));
       await page.route('https://generativelanguage.googleapis.com/**', async route => {
@@ -29,8 +32,6 @@ const assert = require('node:assert/strict');
       await sample();
       if (reducedMotion === 'no-preference') await print();
       await page.getByRole('heading',{name:/發現了/}).waitFor();
-      const celebration = page.getByRole('button',{name:'繼續探索照片'});
-      if (await celebration.isVisible()) await celebration.click();
       await page.getByText('照片選項',{exact:true}).click();
       await page.getByRole('button',{name:'重新辨識這張照片'}).click();
       await print();
