@@ -108,7 +108,7 @@
 @media(min-width:768px) {
   .words-in-life-app { padding: 24px 0; }
   .words-in-life-app:has(> .home-page) { display: grid; place-items: center; }
-  .words-in-life-app .home-page { height: min(900px,calc(100dvh - 48px)); border-radius: 28px; box-shadow: 0 12px 35px #46331b24; }
+  .words-in-life-app .home-page { height: min(900px,calc(100dvh - 48px)); background: transparent; box-shadow: none; }
   .words-in-life-app .home-page > main { display: block; }
   .words-in-life-app .collection-page,.words-in-life-app .scene-page { min-height: calc(100dvh - 48px); border-radius: 28px; }
   .words-in-life-app .app-navigation { bottom: 24px; border-radius: 28px; }
