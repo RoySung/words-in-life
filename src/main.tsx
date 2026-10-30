@@ -2,6 +2,10 @@ import {createRoot} from 'react-dom/client';
 import { lazy, Suspense } from 'react';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 
+import { initializePwa } from './pwa';
+
+initializePwa();
+
 const path = window.location.pathname.replace(/\/$/, '');
 const Page = path === '/design-system/preview'
   ? lazy(() => import('./design-system/Preview'))

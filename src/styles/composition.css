@@ -2,7 +2,7 @@
 .words-in-life-app { --vs-font-latin: 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif; background: #eee5d6; }
 .words-in-life-app h1,.words-in-life-app h2,.words-in-life-app h3 { font-weight: 600; }
 .words-in-life-app .app-page { max-width: 430px; }
-.words-in-life-app .home-page { height: 100dvh; min-height: 680px; padding: 0 14px 20px; overflow: hidden; border-radius: 0; background: var(--vs-cream) url('/design-system/paper-grain.png'); }
+.words-in-life-app .home-page { height: 100dvh; min-height: calc(680px + env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px)); padding: 0 14px 20px; overflow: hidden; border-radius: 0; background: var(--vs-cream) url('/design-system/paper-grain.png'); }
 .camera-utility { height: 54px; display: flex; align-items: center; justify-content: space-between; padding: 4px 10px; }
 .camera-utility > button:first-child { font-size: 11px; letter-spacing: .07em; color: var(--vs-coffee); }
 .words-in-life-app .home-page > main { display: block; height: calc(100% - 54px); }
@@ -114,7 +114,7 @@
   .words-in-life-app .app-navigation { bottom: 24px; border-radius: 28px; }
 }
 @media(max-height:740px) {
-  .words-in-life-app .home-page { min-height: 620px; }
+  .words-in-life-app .home-page { min-height: calc(620px + env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px)); }
   .home-page .camera-body { grid-template-rows: 74px minmax(220px,1fr) auto auto; }
   .home-page .camera-top { height: 74px; }
   .word-detail-dialog .page-header { min-height: 64px; padding: 12px 0 8px; }
@@ -240,8 +240,24 @@
 .settings-actions { display: flex; flex-wrap: wrap; gap: 12px; }
 .settings-feedback { color: var(--vs-success); margin-top: 16px; min-height: 3em; }
 
+/* Standalone windows extend beneath device cutouts and the home indicator. */
+.words-in-life-app .home-page {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: max(20px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(14px, env(safe-area-inset-left, 0px));
+  padding-right: max(14px, env(safe-area-inset-right, 0px));
+}
+.app-page, .word-dialog, .explore-sheet, .camera-overlay {
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+}
+.word-dialog, .explore-sheet {
+  padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
+}
+.pwa-settings { margin-top: 32px; padding-top: 28px; border-top: 1px solid var(--vs-border); }
+.settings-page { padding-bottom: max(40px, env(safe-area-inset-bottom, 0px)); }
 /* Recovery actions need more room than the camera-off message. Let the page
    scroll on short screens rather than overlapping the mission entry or shutter. */
 .words-in-life-app .home-page:has(.home-camera-status .vs-button) {
-  min-height: 800px;
+  min-height: calc(800px + env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px));
 }

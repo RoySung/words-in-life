@@ -1,3 +1,4 @@
+import { PwaSettings } from './PwaSettings';
 import { useState } from 'react';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { Button, IconButton, Tag } from '../design-system/components';
@@ -48,6 +49,7 @@ export function SettingsView({ apiKey, notice, onSave, onBack }: SettingsViewPro
           <p className="settings-feedback" role="status">{message}</p>
         </form>
       </section>
+      <PwaSettings />
     </main>
   </div>;
 }

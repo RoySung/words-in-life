@@ -146,3 +146,17 @@ WebKit 儲存測試使用獨立暫存 profile 以支援 Blob，結束後刪除�
 網站圖示使用 `public/icons/logo.png` 的原始品牌圖，另提供多尺寸 favicon、Apple Touch Icon 與 Web App Manifest。社群分享圖片為 `public/social/words-in-life-og-v5.png`（1200 × 630），採用簡約奶油紙底、紙張壓印專案相機 Logo、Words 對焦角標與「單字」標籤；三張暖色拍立得由標記 mug、plant、book 的場景主卡，以及植物、馬克杯兩張特寫單字卡組成，搭配「Words in Life｜拍下生活，發現單字」。`index.html` 已設定繁中標題、搜尋摘要、Open Graph 與 Twitter summary_large_image 卡片，`metadata.json` 同步應用描述。
 
 正式網址為 [https://words-in-life.pages.dev/](https://words-in-life.pages.dev/)。`index.html` 的 canonical、`og:url`、`og:image` 與 `twitter:image` 均使用此網域的 HTTPS 絕對網址；變更網域時需一併更新。
+
+
+## PWA 安裝與離線使用
+
+正式建置（`npm run build`）會產生 `/sw.js`，並預先快取該版本的 HTML、所有程式區塊與樣式、圖示、紙張材質及範例照片。開發模式不註冊 Service Worker，避免開發時被舊快取干擾。部署至 HTTPS（本機 localhost 亦可），設定頁出現「已可離線開啟」後，即可斷網重新開啟首頁、查看收藏照片與翻卡複習。收藏和照片仍存放於原本的 IndexedDB。
+
+- 安裝：支援安裝提示的瀏覽器會在設定頁提供按鈕。iPhone／iPad 請用 Safari「分享 → 加入主畫面」；其他瀏覽器可使用選單中的安裝功能。
+- 連線限制：AI 照片辨識、個人化任務生成需要網路；離線任務使用既有備援機制。發音取決於裝置是否提供本機語音。Google Fonts 不納入必要快取，離線時使用系統字體。
+- 更新：每次建置依資產內容與 worker 程式產生快取版本；下載完成後在設定頁提示。關閉所有本站分頁與 App 視窗後，再次開啟會啟用新版並清理本站舊版程式快取，不清除收藏。使用途中不強制重載或切換版本。
+- 資料界線：Service Worker 僅快取明確列出的同源公開資產，不攔截 Google API、照片辨識請求、API key、外站資源、文件頁或任意網址。
+- 部署：`public/_headers` 提供 Cloudflare Pages 的 HTML、manifest 與 worker 重新驗證設定；其他主機請套用同等 `Cache-Control: no-cache`。資產與 `sw.js` 應與 HTML 一起發布。
+- 驗證：`npm run test:pwa` 使用正式建置，測試離線重開、照片與複習、版本等待啟用、舊快取清理，以及窄螢幕排版。
+
+快取與更新策略參考 [MDN：Using Service Workers](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers)。實際的系統安裝與相機權限仍需在目標 iOS／Android 裝置驗收。

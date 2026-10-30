@@ -88,6 +88,7 @@ function Application({ store }: { store: ReturnType<typeof useLibrary> }) {
     setMissedQuestTarget(!celebration && activeQuestTarget?.id.startsWith(getTodayDateKey()) ? activeQuestTarget : null);
   };
   const analyzeImage = (imageUrl: string, fromCamera = false) => {
+    if (!navigator.onLine) { setInputError('目前離線，照片辨識需要網路。你仍可開啟我的單字，查看收藏與翻卡複習。'); return; }
     const key = readGeminiKey(); setGeminiKey(key);
     if (!key) {
       setSettingsNotice('請先設定 Gemini API key，再回到首頁選擇或拍攝照片。'); navigate('settings'); return;
