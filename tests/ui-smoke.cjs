@@ -49,11 +49,14 @@ const { chromium } = require('playwright');
  await page.getByRole('button',{name:'結束複習'}).click();
  await page.getByRole('button',{name:'拍攝照片',exact:true}).click();
  await page.getByRole('button',{name:/今日尋寶/}).click();
+ // Keep the developing print visible while decoding and capturing it.
+ await page.emulateMedia({reducedMotion:'no-preference'});
  await page.getByRole('button',{name:'體驗範例照片',exact:true}).click();
  await page.getByRole('button',{name:'取消辨識'}).waitFor();
  await page.locator('.home-print-photo > img').evaluate(img => img.decode());
  await page.screenshot({path:out+'developing-mobile.png'});
  await page.getByRole('heading',{name:/發現了/}).waitFor();
+ await page.emulateMedia({reducedMotion:'reduce'});
  const celebration=page.getByRole('button',{name:'繼續探索照片'}); if(await celebration.isVisible()) await celebration.click();
  await page.screenshot({path:out+'scene-mobile.png',fullPage:true});
  await page.getByRole('button',{name:'重新辨識',exact:true}).scrollIntoViewIfNeeded();

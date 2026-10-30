@@ -41,7 +41,6 @@ export function HomeView(props: HomeViewProps) {
       <span>Words in Life</span>
       {props.onOpenSettings && <button type="button" className="home-settings-button" onClick={props.onOpenSettings} disabled={!!props.printingImage} aria-label={props.hasGeminiKey ? '開啟設定' : '尚未設定 API key，前往設定'}><Settings aria-hidden="true" /></button>}
     </header>
-    {props.printingImage && <button type="button" className="print-cancel" onClick={props.onCancelPrinting} aria-label="取消辨識"><X aria-hidden="true" /></button>}
     <main>
       <section className="camera-body" aria-label="拍照學英文">
         <div className="camera-top">
@@ -61,7 +60,17 @@ export function HomeView(props: HomeViewProps) {
         </div>
         <div className="camera-controls" inert={!!props.printingImage}><div className="camera-control-label"><IconButton className="gallery-thumbnail" label="選照片" onClick={() => file.current?.click()}><Image /></IconButton><span>選照片</span></div><ShutterButton onClick={takePhoto} disabled={!props.cameraEnabled || camera.status !== 'ready'} /><div className="camera-control-label"><button className="collection-counter" aria-label={`我的單字，已收藏 ${props.savedWords.length} 個單字`} onClick={props.onOpenFavorites}><Images aria-hidden="true" /><span aria-hidden="true">{props.savedWords.length}</span></button><span>我的單字</span></div></div>
         <input ref={file} hidden type="file" accept="image/*" onChange={props.onSelectFile} />
-        <div className="camera-print-slot"><span aria-hidden="true">SNAP · LEARN · GROW</span>{props.printingImage && <div className="print-output"><figure className="home-print-photo" aria-label="正在辨識的照片" onAnimationEnd={event => { if (event.animationName === 'print-feed') props.onPrintComplete?.(); }}><img src={props.printingImage} alt="剛選擇的照片" /><figcaption role="status">正在找照片裡的英文…</figcaption></figure></div>}</div>
+        <div className="camera-print-slot"><span aria-hidden="true">SNAP · LEARN · GROW</span>{props.printingImage && <div className="print-output">
+          <figure className="home-print-photo" aria-label="正在辨識的照片" onAnimationEnd={event => { if (event.target === event.currentTarget && event.animationName === 'print-feed') props.onPrintComplete?.(); }}>
+            {['right', 'top', 'left', 'bottom'].map(side => <div key={side} className={`recognition-paper recognition-paper--${side}`} aria-hidden="true"><span className="recognition-paper-eyes"><i /><i /></span><span className="recognition-paper-smile" /><span className="recognition-paper-fold" /></div>)}
+            <img src={props.printingImage} alt="剛選擇的照片" />
+            <figcaption>
+              <div className="recognition-search" aria-hidden="true"><span className="recognition-magnifier"><span className="recognition-lens-detail"><i /><i /><i /></span></span></div>
+              <span role="status">正在找照片裡的單字<span className="recognition-dots" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span></span>
+            </figcaption>
+          </figure>
+          <button type="button" className="print-cancel" onClick={props.onCancelPrinting}><X aria-hidden="true" />取消辨識</button>
+        </div>}</div>
       </section>
       {exploring && <ExploreSheet onClose={() => setExploring(false)}>
         <section className="home-section"><div className="section-heading"><h2>今天，發現身邊的英文</h2><span>{completed}/{props.dailyMissions.length} 已完成</span></div><p className="muted">連續探索 {props.streakCount} 天 · 選一個目標，回到鏡頭找找看。</p>{props.missionsNotice && <p className="mission-notice muted" role="status">{props.missionsNotice}</p>}<div className="mission-list" aria-busy={!!props.missionsLoading}>{props.dailyMissions.map(m => <button key={m.id} disabled={!!props.missionsLoading} onClick={() => { setExploring(false); if (m.isCompleted) props.onViewMissionSticker?.(m); else props.onStartQuest(m); }}><div><strong>{m.targetWord}{m.kind && <span className="mission-kind">{m.kind === 'review' ? '複習' : '新探索'}</span>}</strong><span>{m.targetChinese} · {m.hint}</span>{m.reason && <span className="mission-reason">{m.reason}</span>}</div>{m.isCompleted ? <Check aria-label="已完成" /> : <ArrowUpRight />}</button>)}</div></section>
