@@ -6,7 +6,7 @@
 .camera-utility { height: 54px; display: flex; align-items: center; justify-content: space-between; padding: 4px 10px; }
 .camera-utility > button:first-child { font-size: 11px; letter-spacing: .07em; color: var(--vs-coffee); }
 .words-in-life-app .home-page > main { display: block; height: calc(100% - 54px); }
-.home-page .camera-body { display: grid; grid-template-rows: 88px minmax(260px,1fr) 134px 83px; height: 100%; padding: 0 18px 10px; border-radius: 52px 52px 22px 22px; background: #f3e8d4 url('/design-system/paper-grain.png'); box-shadow: inset 0 3px 2px #fffaf2, inset 0 -3px 6px #c8b39460, 0 4px 10px #66513b18; border: 1px solid #dccab1; }
+.home-page .camera-body { display: grid; grid-template-rows: 88px minmax(260px,1fr) auto auto; height: 100%; padding: 0 18px 10px; border-radius: 52px 52px 22px 22px; background: #f3e8d4 url('/design-system/paper-grain.png'); box-shadow: inset 0 3px 2px #fffaf2, inset 0 -3px 6px #c8b39460, 0 4px 10px #66513b18; border: 1px solid #dccab1; }
 .camera-top { padding: 0 12px; height: 88px; position: relative; }
 .camera-stripes { position: absolute; left: 44%; top: 0; width: 39px; margin: 0; box-shadow: inset 2px 0 1px #ffffff60; }
 .camera-stripes i { width: 13px; }
@@ -24,6 +24,7 @@
 .camera-controls .gallery-thumbnail { padding: 5px; border-radius: 9px; background: var(--vs-surface); }
 .gallery-thumbnail img { width: 100%; height: 100%; object-fit: cover; border-radius: 3px; }
 .camera-print-slot { position: relative; margin: 0 8px 4px; align-self: end; padding: 30px 0 12px; border: 0; border-top: 14px solid #171612; background: linear-gradient(#554a3a,#302a22); color: #cfbea5; box-shadow: 0 -5px 0 #7d6e58, 0 -10px 0 #ddcbb0, 0 -13px 0 #f9efdd, 0 6px 8px #4a39283d, inset 2px 0 3px #ffffff16; font-size: 10px; letter-spacing: .16em; }
+.home-page .camera-print-slot { margin-top: 16px; }
 .explore-sheet { position: fixed; inset: 0; margin: auto; width: min(100%,430px); height: 100dvh; max-height: 100dvh; max-width: 100%; overflow-y: auto; padding: 0 24px 36px; border: 0; background: var(--vs-cream) url('/design-system/paper-grain.png'); color: var(--vs-text); }
 .explore-sheet::backdrop { background: #302820a0; }
 .explore-sheet .home-section { margin: 28px 0; }
@@ -113,8 +114,8 @@
   .words-in-life-app .app-navigation { bottom: 24px; border-radius: 28px; }
 }
 @media(max-height:740px) {
-  .words-in-life-app .home-page { min-height: 600px; }
-  .home-page .camera-body { grid-template-rows: 74px minmax(220px,1fr) 134px 66px; }
+  .words-in-life-app .home-page { min-height: 620px; }
+  .home-page .camera-body { grid-template-rows: 74px minmax(220px,1fr) auto auto; }
   .home-page .camera-top { height: 74px; }
   .word-detail-dialog .page-header { min-height: 64px; padding: 12px 0 8px; }
   .word-detail-dialog .detail-polaroid { padding: 14px 14px 18px; }
@@ -152,9 +153,9 @@
 .home-camera-status > p { font-size: 13px; line-height: 1.7; max-width: 240px; }
 .home-camera-status .vs-button { font-size: 12px; }
 .home-camera-status .sample-fallback { color: var(--vs-paper); text-decoration: underline; text-underline-offset: 4px; }
-.home-page .camera-controls { padding: 32px 12px 16px; display: grid; grid-template-columns: 1fr 1fr 1fr; justify-items: center; gap: 8px; }
-.camera-control-label { position: relative; display: grid; justify-items: center; }
-.camera-control-label > span { position: absolute; top: calc(100% + 4px); left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 11px; color: var(--vs-coffee); }
+.home-page .camera-controls { padding: 28px 0 18px; display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); justify-items: center; gap: 8px; }
+.camera-control-label { display: grid; justify-items: center; gap: 4px; min-width: 0; }
+.camera-control-label > span { white-space: nowrap; font-size: 11px; color: var(--vs-coffee); }
 .camera-control-label .gallery-thumbnail { width: 44px; height: 44px; border: 1px solid #d2bea2; border-radius: 13px; background: #eee0c9 url('/design-system/paper-grain.png'); color: var(--vs-coffee); box-shadow: inset 0 1px 2px #fff9efb0, 0 1px 2px #70573412; }
 .camera-control-label .gallery-thumbnail:hover { background-color: #e7d6ba; }
 .camera-control-label .gallery-thumbnail:active { box-shadow: inset 0 2px 3px #70573426; }
@@ -238,3 +239,9 @@
 .settings-error { color: var(--vs-error); margin-bottom: 16px; }
 .settings-actions { display: flex; flex-wrap: wrap; gap: 12px; }
 .settings-feedback { color: var(--vs-success); margin-top: 16px; min-height: 3em; }
+
+/* Recovery actions need more room than the camera-off message. Let the page
+   scroll on short screens rather than overlapping the mission entry or shutter. */
+.words-in-life-app .home-page:has(.home-camera-status .vs-button) {
+  min-height: 800px;
+}
