@@ -9,6 +9,8 @@
   --vs-rust: #a64016;
   --vs-blue: #426775;
   --vs-bg: var(--vs-cream);
+  --vs-light-startup: radial-gradient(ellipse at 8% 6%, #fffaf0 0%, #fff8e94d 32%, transparent 66%), linear-gradient(135deg, #f7eedf 0%, #f1e6d4 56%, #e4d3bb 100%);
+  --vs-light-home: radial-gradient(ellipse at 8% 6%, #fff9ed33 0%, transparent 60%), linear-gradient(135deg, #f4ecdf 0%, #f3eadb 56%, #efe5d5 100%);
   --vs-surface: var(--vs-paper);
   --vs-text: var(--vs-espresso);
   --vs-muted: #756453;

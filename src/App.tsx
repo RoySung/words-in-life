@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
+import { StartupView, type StartupPhase } from './components/StartupView';
 import { SettingsView } from './components/SettingsView';
 import { readGeminiKey, saveGeminiKey } from './utils/geminiSettings';
 import { HomeView } from './components/HomeView';
@@ -21,13 +22,15 @@ import './styles/application.css';
 
 const CAMERA_ENABLED_STORAGE_KEY = 'words-in-life-camera-enabled-v1';
 
-export default function App() {
+export default function App({ onStartupChange }: { onStartupChange?: (phase: StartupPhase) => void }) {
   const [services] = useState(createServices);
   useEffect(() => () => services.close(), [services]);
   const store = useLibrary(services);
-  if (store.loading) return <main className="vs-theme app-page" role="status">正在載入收藏…</main>;
-  if (!store.library) return <main className="vs-theme app-page"><h1>暫時無法開啟收藏</h1><p role="alert">{store.error}</p><button className="vs-button" onClick={store.retry}>重新載入</button><p>原始資料仍保留，請確認瀏覽器允許網站儲存資料。</p></main>;
-  return <Application store={store} />;
+  useLayoutEffect(() => {
+    onStartupChange?.(store.loading ? 'library' : store.library ? 'ready' : 'error');
+  }, [onStartupChange, store.loading, store.library]);
+  if (!store.loading && !store.library) return <StartupView phase="error" error={store.error} onRetry={store.retry} />;
+  return store.library ? <Application store={store} /> : null;
 }
 
 function Application({ store }: { store: ReturnType<typeof useLibrary> }) {

@@ -2,7 +2,8 @@
 .words-in-life-app { --vs-font-latin: 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif; background: #eee5d6; }
 .words-in-life-app h1,.words-in-life-app h2,.words-in-life-app h3 { font-weight: 600; }
 .words-in-life-app .app-page { max-width: 430px; }
-.words-in-life-app .home-page { height: 100dvh; min-height: calc(680px + env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px)); padding: 0 14px 20px; overflow: hidden; border-radius: 0; background: var(--vs-cream) url('/design-system/paper-grain.png'); }
+.words-in-life-app:has(> .home-page) { background: var(--vs-light-home); }
+.words-in-life-app .home-page { height: 100dvh; min-height: calc(680px + env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px)); padding: 0 14px 20px; overflow: hidden; border-radius: 0; background: url('/design-system/paper-grain.png') transparent; }
 .camera-utility { height: 54px; display: flex; align-items: center; justify-content: space-between; padding: 4px 10px; }
 .camera-utility > button:first-child { font-size: 11px; letter-spacing: .07em; color: var(--vs-coffee); }
 .words-in-life-app .home-page > main { display: block; height: calc(100% - 54px); }
@@ -12,6 +13,8 @@
 .camera-stripes i { width: 13px; }
 .camera-lens { margin-left: auto; width: 60px; height: 60px; border: 5px solid #a99c87; border-radius: 13px; background: linear-gradient(145deg,#514536,#241e18); box-shadow: 0 2px 4px #4a392e70, inset 0 0 0 2px #1f1b16, 0 0 0 4px #eee1cd; }
 .camera-lens::after { width: 30px; height: 30px; border: 5px solid #211d18; background: radial-gradient(circle at 37% 28%,#bcb29e 0 9%,#726959 11% 24%,#37332c 50%,#161612 72%); box-shadow: 0 2px 2px #0008, inset 0 1px 2px #b4a48a80; }
+.home-page .camera-lens { transform: scale(.6); transform-origin: right center; }
+.home-page .camera-lens::after { height: 24px; border-radius: 5px; background: linear-gradient(145deg,#8c8575,#37332c 55%,#161612); }
 .home-viewfinder,.live-viewfinder { aspect-ratio: auto; min-height: 0; height: 100%; border: 10px solid #655947; outline: 1px solid #ae9778; border-radius: 25px; box-shadow: 0 0 0 7px #e5d6bc, 0 0 0 9px #cdb99b, inset 0 0 0 2px #e5d6bc; }
 .home-viewfinder > img { filter: saturate(.78) sepia(.13); }
 .viewfinder-corners { inset: 14px; border: 0; border-radius: 0; background: linear-gradient(#fff9ef,#fff9ef) left top/28px 3px no-repeat, linear-gradient(#fff9ef,#fff9ef) left top/3px 28px no-repeat, linear-gradient(#fff9ef,#fff9ef) right top/28px 3px no-repeat, linear-gradient(#fff9ef,#fff9ef) right top/3px 28px no-repeat, linear-gradient(#fff9ef,#fff9ef) left bottom/28px 3px no-repeat, linear-gradient(#fff9ef,#fff9ef) left bottom/3px 28px no-repeat, linear-gradient(#fff9ef,#fff9ef) right bottom/28px 3px no-repeat, linear-gradient(#fff9ef,#fff9ef) right bottom/3px 28px no-repeat; }
