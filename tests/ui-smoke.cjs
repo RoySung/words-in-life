@@ -19,7 +19,7 @@ const { chromium } = require('playwright');
  await page.getByRole('button',{name:'查看 coffee 咖啡',exact:true}).click();
  await page.getByRole('dialog').waitFor();
  await page.screenshot({path:out+'detail-mobile.png'});
- await page.getByRole('button',{name:'更多用法與發音練習'}).click();
+ await page.getByRole('button',{name:'更多用法與發音'}).click();
  await page.getByRole('button',{name:'查看拍攝原圖'}).click();
  await page.getByRole('dialog',{name:'coffee 的原始照片'}).waitFor();
  await page.keyboard.press('Tab');
