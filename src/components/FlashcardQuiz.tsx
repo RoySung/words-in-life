@@ -40,7 +40,7 @@ export function FlashcardQuiz({ words: sourceWords, onClose, onReview, photoUrls
     if (!saved) { setSaveError('複習紀錄尚未儲存，請重試。'); advancingRef.current = false; return; }
     setAdvancing(remembered);
   };
-  return <dialog ref={dialog} className="word-dialog quiz-dialog" aria-label="單字翻卡測驗"><header className="page-header"><IconButton label="結束複習" onClick={onClose}><ChevronLeft /></IconButton><h1>單字翻卡</h1><span>{Math.min(index + 1, words.length)} / {words.length}</span></header>
+  return <dialog ref={dialog} className="word-dialog vs-surface-dark quiz-dialog" aria-label="單字翻卡測驗"><header className="page-header"><IconButton label="結束複習" onClick={onClose}><ChevronLeft /></IconButton><h1>單字翻卡</h1><span>{Math.min(index + 1, words.length)} / {words.length}</span></header>
     {saveError && <p role="alert">{saveError}</p>}
     {word ? <main><Progress label="複習進度" value={index / words.length * 100} /><article className={`quiz-card ${busy ? "is-advancing" : ""}`} aria-label="照片翻卡" aria-busy={busy}>
       {nextWord && <div className="quiz-next-card quiz-face quiz-face--front" aria-hidden="true" inert>{nextWord.crop || nextWord.photo || nextWord.stickerUrl || nextWord.imageUrl ? <PhotoImage photo={nextWord.crop || nextWord.photo} urls={photoUrls} src={nextWord.stickerUrl || nextWord.imageUrl} alt="" /> : <div className="quiz-photo-missing"><Image /></div>}<span className="quiz-face-hint">看照片，想想它的英文。<br />點一下翻卡看解答</span></div>}

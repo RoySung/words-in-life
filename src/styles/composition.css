@@ -15,7 +15,7 @@
 .home-viewfinder,.live-viewfinder { aspect-ratio: auto; min-height: 0; height: 100%; border: 10px solid #655947; outline: 1px solid #ae9778; border-radius: 25px; box-shadow: 0 0 0 7px #e5d6bc, 0 0 0 9px #cdb99b, inset 0 0 0 2px #e5d6bc; }
 .home-viewfinder > img { filter: saturate(.78) sepia(.13); }
 .viewfinder-corners { inset: 14px; border: 0; border-radius: 0; background: linear-gradient(#fff9ef,#fff9ef) left top/28px 3px no-repeat, linear-gradient(#fff9ef,#fff9ef) left top/3px 28px no-repeat, linear-gradient(#fff9ef,#fff9ef) right top/28px 3px no-repeat, linear-gradient(#fff9ef,#fff9ef) right top/3px 28px no-repeat, linear-gradient(#fff9ef,#fff9ef) left bottom/28px 3px no-repeat, linear-gradient(#fff9ef,#fff9ef) left bottom/3px 28px no-repeat, linear-gradient(#fff9ef,#fff9ef) right bottom/28px 3px no-repeat, linear-gradient(#fff9ef,#fff9ef) right bottom/3px 28px no-repeat; }
-.viewfinder-zoom { position: absolute; left: calc(50% - 23px); bottom: 14px; width: 46px; height: 46px; display: grid; place-items: center; border: 1px solid #fff9ef; border-radius: 50%; color: #fff9ef; background: #493d2b55; font-size: 17px; }
+.viewfinder-zoom { position: absolute; left: calc(50% - 23px); bottom: 14px; width: 46px; height: 46px; display: grid; place-items: center; border: 1px solid #fff9ef; border-radius: 50%; color: var(--vs-paper); background: var(--vs-overlay-bg); font-size: 17px; }
 .scene-demo-label { top: 24px; left: 24px; background: #30282065; font-size: 9px; padding: 1px 6px; border-radius: 3px; }
 .camera-controls { padding: 16px 12px; }
 .camera-controls .vs-shutter { width: 86px; height: 86px; border: 5px solid #40392f; outline: 5px solid #d1bca0; background: linear-gradient(145deg,#fc8b3f,#ed682b); box-shadow: inset 0 0 0 3px #f7d5ad, inset 0 0 0 7px #ec6c2c, inset 0 0 0 8px #c95d2c, 0 5px 7px #72513150; }
@@ -144,11 +144,11 @@
 .home-viewfinder { text-align: initial; isolation: isolate; }
 .home-viewfinder > video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .mission-viewfinder-controls { position: absolute; top: 18px; left: 16px; right: 16px; display: flex; justify-content: center; align-items: center; gap: 4px; z-index: 3; }
-.mission-viewfinder-entry { min-height: 44px; max-width: 100%; padding: 8px 14px; display: inline-flex; gap: 10px; align-items: center; border-radius: 24px; background: #302820c9; color: var(--vs-paper); font-size: 12px; }
+.mission-viewfinder-entry { min-height: 44px; max-width: 100%; padding: 8px 14px; display: inline-flex; gap: 10px; align-items: center; border-radius: 24px; background: var(--vs-overlay-bg); color: var(--vs-paper); font-size: 12px; }
 .mission-viewfinder-entry span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mission-viewfinder-entry span:nth-child(2) { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .mission-viewfinder-entry svg { width: 16px; height: 16px; }
-.mission-viewfinder-controls .cancel-quest { color: var(--vs-paper); background: #302820c9; }
+.mission-viewfinder-controls .cancel-quest { color: var(--vs-paper); background: var(--vs-overlay-bg); }
 .home-camera-status { position: absolute; inset: 75px 22px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--vs-paper); text-align: center; }
 .home-camera-status > p { font-size: 13px; line-height: 1.7; max-width: 240px; }
 .home-camera-status .vs-button { font-size: 12px; }
@@ -204,7 +204,7 @@
 .word-gallery:not(.word-gallery--list) .collection-open .photo-placeholder { aspect-ratio: 1; border-radius: 1px; }
 .word-gallery:not(.word-gallery--list) .collection-open > div:last-child { padding: 4px 1px 0; }
 .collection-capture { position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 20; }
-.collection-capture .vs-shutter { color: var(--vs-paper); box-shadow: 0 5px 12px #99451d30, inset 0 0 0 5px #ffffff24; }
+.collection-capture .vs-shutter { color: var(--vs-shutter-icon); box-shadow: 0 5px 12px #99451d30, inset 0 0 0 5px #ffffff24; }
 
 /* Recessed power slider integrated into the camera's upper-left housing. */
 .camera-top .camera-toggle { position: absolute; left: 12px; top: 12px; display: flex; align-items: center; gap: 5px; min-width: 88px; min-height: 56px; padding: 5px 7px; color: var(--vs-coffee); background: transparent; border: 0; border-radius: 8px; text-align: left; }
@@ -232,7 +232,7 @@
 .settings-intro { margin: 12px 0 24px; color: var(--vs-muted); }
 .settings-notice { background: var(--vs-sand); border-radius: var(--vs-radius-sm); padding: 16px; margin-bottom: 24px; }
 .settings-page label { display: block; font-weight: 600; margin-bottom: 8px; }
-.settings-key-field { display: flex; align-items: center; gap: 4px; padding: 4px; background: var(--vs-surface); border: 1px solid var(--vs-border); border-radius: var(--vs-radius-md); }
+.settings-key-field { display: flex; align-items: center; gap: 4px; padding: 4px; background: var(--vs-surface); border: 1px solid var(--vs-control-border); border-radius: var(--vs-radius-md); }
 .settings-key-field input { min-width: 0; width: 100%; min-height: 44px; padding: 8px; color: var(--vs-text); background: transparent; border: 0; border-radius: var(--vs-radius-sm); }
 .settings-key-field input::placeholder { color: var(--vs-muted); }
 .settings-help { color: var(--vs-muted); font-size: 13px; margin: 12px 0 24px; }

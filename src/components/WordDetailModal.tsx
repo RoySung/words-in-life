@@ -105,7 +105,7 @@ export const WordDetailModal: React.FC<WordDetailModalProps> = ({
 
   const source = item.originalImageUrl || imageUrl || '';
   const preview = usePhotoUrl(item.crop || item.photo, item.stickerUrl || source, photoUrls);
-  return <dialog ref={dialogRef} className={`word-dialog word-detail-dialog ${more ? "is-expanded" : ""}`} aria-label={`${item.word} 單字詳情`}>
+  return <dialog ref={dialogRef} className={`word-dialog vs-surface-dark word-detail-dialog ${more ? "is-expanded" : ""}`} aria-label={`${item.word} 單字詳情`}>
     <header className="page-header"><IconButton label="關閉單字詳情" onClick={onClose}><ChevronLeft /></IconButton><span /><IconButton label={isSaved ? '移除收藏' : '收藏單字'} aria-pressed={isSaved} onClick={onToggleSave}><Bookmark fill={isSaved ? 'currentColor' : 'none'} /></IconButton></header>
     {storageError && <p role="alert" className="vs-error">{storageError}</p>}
     <main><Polaroid src={preview} alt={item.chinese} taped className="detail-polaroid">

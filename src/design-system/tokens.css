@@ -15,7 +15,13 @@
   --vs-border: #d8c8b1;
   --vs-action: var(--vs-orange);
   --vs-action-text: #302820;
-  --vs-focus: var(--vs-blue);
+  --vs-shutter-bg: #db621e;
+  --vs-shutter-icon: #ffffff;
+  --vs-control-border: #8e7862;
+  --vs-overlay-bg: #302820d9;
+  --vs-focus-default: var(--vs-blue);
+  --vs-focus-inverse: var(--vs-paper);
+  --vs-focus: var(--vs-focus-default);
   --vs-error: #a53726;
   --vs-success: #466744;
   --vs-space-1: 4px;

@@ -13,7 +13,7 @@
 .vs-chip.is-selected { background: var(--vs-coffee); color: var(--vs-paper); }
 .vs-tag { display: inline-block; border-radius: var(--vs-radius-sm); padding: 4px 10px; font-size: 12px; background: var(--vs-sand); color: var(--vs-coffee); }
 .vs-tag--blue { background: #dce4e1; color: var(--vs-blue); }
-.vs-input-wrap { display: flex; align-items: center; gap: 10px; padding: 0 14px; border: 1px solid var(--vs-border); border-radius: var(--vs-radius-md); background: var(--vs-paper); }
+.vs-input-wrap { display: flex; align-items: center; gap: 10px; padding: 0 14px; border: 1px solid var(--vs-control-border); border-radius: var(--vs-radius-md); background: var(--vs-paper); }
 .vs-input-wrap input { min-width: 0; width: 100%; min-height: 46px; background: transparent; border: 0; color: var(--vs-text); }
 .vs-input-wrap input::placeholder { color: var(--vs-muted); }
 .vs-error { color: var(--vs-error); font-size: 13px; margin: 8px 0 0; }
@@ -23,7 +23,7 @@
 .vs-progress progress::-webkit-progress-bar { background: var(--vs-sand); }
 .vs-progress progress::-webkit-progress-value { background: var(--vs-action); border-radius: 99px; }
 .vs-progress progress::-moz-progress-bar { background: var(--vs-action); }
-.vs-polaroid { position: relative; margin: 0; background: var(--vs-paper); padding: 16px 16px 24px; border-radius: 4px; box-shadow: var(--vs-shadow-paper); }
+.vs-polaroid { --vs-focus: var(--vs-focus-default); position: relative; margin: 0; background: var(--vs-paper); padding: 16px 16px 24px; border-radius: 4px; box-shadow: var(--vs-shadow-paper); }
 .vs-polaroid > img { display: block; width: 100%; aspect-ratio: 4/5; object-fit: cover; }
 .vs-polaroid figcaption { padding: 20px 4px 0; }
 .vs-polaroid--taped::before { content: ''; position: absolute; z-index: 1; width: 82px; height: 28px; left: calc(50% - 41px); top: -12px; background: #e4caa2bc; transform: rotate(-6deg); clip-path: polygon(2% 0, 98% 2%, 100% 16%, 97% 30%, 100% 45%, 98% 62%, 100% 80%, 97% 100%, 1% 97%, 3% 80%, 0 60%, 2% 40%, 0 20%); }
@@ -35,9 +35,11 @@
 .vs-word-row strong { font-family: var(--vs-font-latin); font-size: 14px; }
 .vs-word-row span { display: block; font-size: 12px; color: var(--vs-muted); }
 .vs-word-row .vs-icon-button { width: 38px; min-width: 38px; height: 44px; }
-.vs-shutter { width: 64px; height: 64px; border-radius: 50%; background: var(--vs-action); color: var(--vs-text); box-shadow: 0 4px 9px #99451d22, inset 0 0 0 5px #ffffff24; }
+.vs-shutter { width: 64px; height: 64px; border-radius: 50%; background: var(--vs-shutter-bg); color: var(--vs-shutter-icon); box-shadow: 0 4px 9px #99451d22, inset 0 0 0 5px #ffffff24; }
 .vs-shutter svg { width: 27px; height: 27px; }
 .vs-bottom-nav { display: flex; align-items: center; justify-content: space-around; gap: 24px; background: var(--vs-paper); padding: 12px 20px max(12px, env(safe-area-inset-bottom)); border-radius: 24px 24px 0 0; }
 .vs-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 .vs-spin { animation: vs-spin 1s linear infinite; }
 @keyframes vs-spin { to { transform: rotate(360deg); } }
+
+.vs-surface-dark { --vs-focus: var(--vs-focus-inverse); background: var(--vs-coffee); color: var(--vs-paper); }
