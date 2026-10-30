@@ -157,6 +157,7 @@ WebKit 儲存測試使用獨立暫存 profile 以支援 Blob，結束後刪除�
 - 更新：每次建置依資產內容與 worker 程式產生快取版本；下載完成後在設定頁提示。關閉所有本站分頁與 App 視窗後，再次開啟會啟用新版並清理本站舊版程式快取，不清除收藏。使用途中不強制重載或切換版本。
 - 資料界線：Service Worker 僅快取明確列出的同源公開資產，不攔截 Google API、照片辨識請求、API key、外站資源、文件頁或任意網址。
 - 部署：`public/_headers` 提供 Cloudflare Pages 的 HTML、manifest 與 worker 重新驗證設定；其他主機請套用同等 `Cache-Control: no-cache`。資產與 `sw.js` 應與 HTML 一起發布。
-- 驗證：`npm run test:pwa` 使用正式建置，測試離線重開、照片與複習、版本等待啟用、舊快取清理，以及窄螢幕排版。
+- Safari 相容性：預先快取與回傳回應時會清除重新導向紀錄，避免主機將 `/index.html` 轉向 `/` 後，Safari 出現「Response served by service worker has redirections」。
+- 驗證：`npm run test:pwa` 使用正式建置，模擬 HTML 重新導向，測試離線重開、照片與複習、版本等待啟用、舊快取清理，以及窄螢幕排版。可用 `PWA_BROWSER=webkit PWA_SHELL_ONLY=1 npm run test:pwa` 在已安裝的 Playwright WebKit 專門驗證文件快取與線上／離線導覽。
 
 快取與更新策略參考 [MDN：Using Service Workers](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers)。實際的系統安裝與相機權限仍需在目標 iOS／Android 裝置驗收。

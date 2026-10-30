@@ -3,11 +3,25 @@ const CACHE_NAME = __CACHE_NAME__;
 const PRECACHE_URLS = __PRECACHE_URLS__;
 const ASSET_PATHS = new Set(PRECACHE_URLS);
 
+function withoutRedirectHistory(response) {
+  // HTML hosts may redirect /index.html to /. Safari rejects that response
+  // for navigation even after it has been stored in Cache Storage.
+  return response.redirected ? new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  }) : response;
+}
+
 self.addEventListener('install', event => {
   // No skipWaiting: open tabs keep a consistent version until all are closed.
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
     await cache.addAll(PRECACHE_URLS.map(url => new Request(url, { cache: 'reload' })));
+    await Promise.all(PRECACHE_URLS.map(async url => {
+      const response = await cache.match(url);
+      if (response?.redirected) await cache.put(url, withoutRedirectHistory(response));
+    }));
   })());
 });
 
@@ -31,6 +45,7 @@ self.addEventListener('fetch', event => {
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
     const cached = await cache.match(appNavigation ? '/index.html' : url.pathname);
-    return cached || fetch(request);
+    // Also handle existing redirected entries and a redirected network fallback.
+    return withoutRedirectHistory(cached || await fetch(request));
   })());
 });

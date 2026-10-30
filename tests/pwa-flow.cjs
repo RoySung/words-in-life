@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const http = require('node:http');
 const fs = require('node:fs/promises');
 const path = require('node:path');
-const { chromium } = require('playwright');
+const { chromium, webkit } = require('playwright');
 
 (async () => {
   const root = path.resolve('dist');
@@ -10,6 +10,11 @@ const { chromium } = require('playwright');
   const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.webmanifest': 'application/manifest+json', '.ico': 'image/x-icon' };
   const server = http.createServer(async (req, res) => {
     const pathname = new URL(req.url, 'http://localhost').pathname;
+    // Cloudflare's HTML canonicalization redirects index.html to the root.
+    if (pathname === '/index.html') {
+      res.writeHead(308, { Location: '/' }).end();
+      return;
+    }
     const file = path.resolve(root, '.' + (pathname === '/' ? '/index.html' : pathname));
     if (!file.startsWith(root + '/')) { res.writeHead(403).end(); return; }
     try {
@@ -23,7 +28,9 @@ const { chromium } = require('playwright');
   const base = `http://127.0.0.1:${server.address().port}`;
   let browser;
   try {
-    browser = await chromium.launch({ headless: true, executablePath: process.env.CHROME_PATH });
+    browser = process.env.PWA_BROWSER === 'webkit'
+      ? await webkit.launch({ headless: true })
+      : await chromium.launch({ headless: true, executablePath: process.env.CHROME_PATH });
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
     await context.addInitScript(() => { try { localStorage.setItem('words-in-life-camera-enabled-v1', 'false'); } catch {} });
     let page = await context.newPage();
@@ -43,9 +50,30 @@ const { chromium } = require('playwright');
     await page.evaluate(async () => { await caches.open('unrelated-cache'); });
     const cacheBefore = await page.evaluate(async () => (await caches.keys()).filter(k => k.startsWith('words-in-life-shell-')));
     assert.equal(cacheBefore.length, 1);
+    const shell = await page.evaluate(async name => {
+      const response = await (await caches.open(name)).match('/index.html');
+      return { redirected: response.redirected, status: response.status };
+    }, cacheBefore[0]);
+    assert.equal(shell.redirected, false, 'cached shell must be safe for Safari navigation after an HTML redirect');
+    assert.equal(shell.status, 200);
     const cacheUrls = await page.evaluate(async name => (await (await caches.open(name)).keys()).map(r => new URL(r.url).pathname), cacheBefore[0]);
     assert(cacheUrls.includes('/sample-images/cafe_scene.jpg'));
     assert(cacheUrls.every(url => !url.startsWith('/api') && !url.startsWith('/docs') && !url.startsWith('/social')));
+    if (process.env.PWA_SHELL_ONLY === '1') {
+      // Isolate document navigation from application startup and UI features.
+      for (const offline of [false, true]) {
+        await context.setOffline(offline);
+        for (const pathname of ['/', '/index.html', '/?launch=pwa']) {
+          const response = await page.goto(base + pathname, { waitUntil: 'domcontentloaded' });
+          assert.equal(response.status(), 200);
+          assert((await response.text()).includes('<div id="root"></div>'));
+        }
+      }
+      console.log('PWA shell: redirected precache and controlled navigation to /, /index.html and /?launch=pwa passed online and offline.');
+      return;
+    }
+    // Finish initial library setup before testing a subsequent offline launch.
+    await page.getByRole('button', { name: /^我的單字/ }).waitFor();
     await context.setOffline(true);
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.getByRole('button', { name: /^我的單字/ }).click();
@@ -91,6 +119,6 @@ const { chromium } = require('playwright');
     await page.getByRole('heading', { name: /^我的單字/ }).waitFor();
     assert.equal(await page.locator('.collection-card').count(), 4);
     assert.deepEqual(errors, []);
-    console.log('PWA: manifest/icons, precache boundary, offline reload/photos/quiz, recognition guard, responsive settings, waiting update, activation, cache cleanup and collection persistence passed.');
+    console.log('PWA: redirected HTML shell, manifest/icons, precache boundary, offline reload/photos/quiz, recognition guard, responsive settings, waiting update, activation, cache cleanup and collection persistence passed.');
   } finally { await browser?.close(); await new Promise(resolve => server.close(resolve)); }
 })().catch(error => { console.error(error); process.exitCode = 1; });
