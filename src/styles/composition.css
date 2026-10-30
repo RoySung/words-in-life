@@ -51,7 +51,7 @@
 .app-navigation .vs-shutter { width: 64px; height: 64px; color: var(--vs-paper); }
 .app-navigation .vs-icon-button[aria-current=page] { background: transparent; color: var(--vs-coffee); }
 .scene-page,.word-detail-dialog { background: radial-gradient(ellipse at 0 10%,#b48e6550,transparent 65%),var(--vs-coffee) url('/design-system/paper-grain.png'); }
-.words-in-life-app .scene-page { width: min(100%,430px); padding: 0 18px 20px; }
+.words-in-life-app .scene-page { width: min(100%,430px); padding: 0 18px calc(140px + env(safe-area-inset-bottom, 0px)); }
 .scene-page .page-header { min-height: 82px; padding: 22px 0 12px; }
 .scene-page .scene-polaroid { padding: 18px 18px 38px; margin: 20px 4px 30px; transform: rotate(-4deg); }
 .scene-polaroid .scene-image { aspect-ratio: 4/5; }
@@ -66,9 +66,17 @@
 .discovery-open strong { font-size: 15px; font-weight: 600; }
 .discovery-open span { display: block; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .discovery-row .vs-icon-button { width: 38px; }
-.scene-tools { margin: 16px 0 0; font-size: 12px; }
-.scene-tools summary { min-height: 44px; align-content: center; cursor: pointer; color: var(--vs-sand); }
-.scene-tools .reanalyze-button { margin: 0; }
+.scene-page .scene-back { color: var(--vs-paper); padding-inline: 8px 12px; }
+.scene-polaroid .scene-photo-actions { justify-content: flex-end; padding: 12px 0 0; }
+.scene-marker-toggle { background: transparent; border: 1px solid var(--vs-border); border-radius: var(--vs-radius-pill); padding: 8px 14px; font-size: 13px; }
+.scene-page .scene-reanalyze { width: 100%; margin-top: 16px; background: var(--vs-paper); border: 1px solid var(--vs-border); color: var(--vs-coffee); }
+.scene-capture { position: fixed; z-index: 10; bottom: max(18px, env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); }
+.scene-capture .scene-shutter { flex-direction: column; gap: 6px; padding: 4px 8px; background: transparent; border-radius: 16px; }
+.scene-shutter-face { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--vs-shutter-bg); color: var(--vs-shutter-icon); box-shadow: 0 5px 12px #30282030, inset 0 0 0 5px #ffffff24; }
+.scene-shutter-face svg { width: 27px; height: 27px; }
+.scene-shutter-label { padding: 2px 10px; border-radius: var(--vs-radius-pill); background: var(--vs-coffee); color: var(--vs-paper); font-size: 12px; font-weight: 500; }
+.scene-page { scroll-padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px)); }
+.scene-page button { scroll-margin-block: 20px calc(140px + env(safe-area-inset-bottom, 0px)); }
 .word-detail-dialog { width: min(100%,430px); padding: 0 27px 20px; display: flex; flex-direction: column; }
 .word-detail-dialog .page-header { min-height: 86px; padding: 22px 0 14px; flex-shrink: 0; }
 .word-detail-dialog > main { min-height: 0; flex: 1; display: flex; padding: 12px 0 18px; }
