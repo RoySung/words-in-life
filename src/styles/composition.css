@@ -54,8 +54,9 @@
 .app-navigation .vs-shutter { width: 64px; height: 64px; color: var(--vs-paper); }
 .app-navigation .vs-icon-button[aria-current=page] { background: transparent; color: var(--vs-coffee); }
 .scene-page,.word-detail-dialog { background: radial-gradient(ellipse at 0 10%,#b48e6550,transparent 65%),var(--vs-coffee) url('/design-system/paper-grain.png'); }
-.words-in-life-app .scene-page { display: flex; flex-direction: column; width: min(100%,430px); height: 100dvh; padding: 0 18px calc(140px + env(safe-area-inset-bottom, 0px)); }
-.scene-page > main { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 0 6px 16px; scroll-padding-block: 12px; }
+.words-in-life-app .scene-page { display: flex; flex-direction: column; width: min(100%,430px); min-height: 100dvh; padding: 0 18px max(24px, env(safe-area-inset-bottom, 0px)); }
+/* Let the document scroll so the discovery sheet has no clipped lower edge. */
+.scene-page > main { flex: 1; padding: 0 6px 16px; }
 .scene-page > .page-header { flex-shrink: 0; }
 .scene-page .page-header { min-height: calc(72px + env(safe-area-inset-top, 0px)); padding: max(16px, env(safe-area-inset-top, 0px)) 0 12px; }
 .scene-page .scene-polaroid { width: min(calc(100% - 16px), calc(min(50dvh, max(120px, 100dvh - 400px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))) * var(--scene-photo-ratio, 1) + 24px)); padding: 12px 12px 16px; margin: 14px auto 24px; transform: rotate(-1.5deg); }
@@ -77,13 +78,13 @@
 .scene-polaroid .scene-photo-actions { justify-content: flex-end; padding: 12px 0 0; }
 .scene-marker-toggle { background: transparent; border: 1px solid var(--vs-border); border-radius: var(--vs-radius-pill); padding: 8px 14px; font-size: 13px; }
 .scene-page .scene-reanalyze { width: 100%; margin-top: 16px; background: var(--vs-paper); border: 1px solid var(--vs-border); color: var(--vs-coffee); }
-.scene-capture { position: fixed; z-index: 10; bottom: max(18px, env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); }
+.scene-capture { align-self: center; flex-shrink: 0; margin-top: 24px; }
 .scene-capture .scene-shutter { flex-direction: column; gap: 6px; padding: 4px 8px; background: transparent; border-radius: 16px; }
 .scene-shutter-face { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--vs-shutter-bg); color: var(--vs-shutter-icon); box-shadow: 0 5px 12px #30282030, inset 0 0 0 5px #ffffff24; }
 .scene-shutter-face svg { width: 27px; height: 27px; }
 .scene-shutter-label { padding: 2px 10px; border-radius: var(--vs-radius-pill); background: var(--vs-coffee); color: var(--vs-paper); font-size: 12px; font-weight: 500; }
-.scene-page { scroll-padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px)); }
-.scene-page button { scroll-margin-block: 20px calc(140px + env(safe-area-inset-bottom, 0px)); }
+.scene-page { scroll-padding-bottom: 24px; }
+.scene-page button { scroll-margin-block: 20px; }
 .word-detail-dialog { width: min(100%,430px); padding: 0 27px 20px; display: flex; flex-direction: column; }
 .word-detail-dialog .page-header { min-height: 86px; padding: 22px 0 14px; flex-shrink: 0; }
 .word-detail-dialog > main { min-height: 0; flex: 1; display: flex; padding: 12px 0 18px; }
@@ -129,7 +130,6 @@
   .words-in-life-app .home-page { height: min(900px,calc(100dvh - 48px)); background: transparent; box-shadow: none; }
   .words-in-life-app .home-page > main { display: block; }
   .words-in-life-app .collection-page,.words-in-life-app .scene-page { min-height: calc(100dvh - 48px); border-radius: 28px; }
-  .words-in-life-app .scene-page { height: calc(100dvh - 48px); }
   .words-in-life-app .app-navigation { bottom: 24px; border-radius: 28px; }
 }
 @media(max-height:740px) {

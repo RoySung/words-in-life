@@ -44,6 +44,10 @@ function Application({ store }: { store: ReturnType<typeof useLibrary> }) {
   const [navigation, setNavigation] = useState<'home' | 'favorites' | 'settings'>('home');
   const recognition = useRecognition(store.services.recognition);
   const activeView = navigation === 'home' && recognition.state.kind !== 'idle' ? recognition.state.kind : navigation;
+  useLayoutEffect(() => {
+    // Scene results scroll the document; restore camera controls before painting home.
+    if (activeView === 'home') window.scrollTo(0, 0);
+  }, [activeView]);
   const currentAnalysis = recognition.state.kind === 'scene' ? recognition.state.result : null;
   const currentFailureInfo = recognition.state.kind === 'failure' ? recognition.state.failure : null;
   const printingImage = recognition.state.kind === 'analyzing' ? recognition.state.imageUrl : '';

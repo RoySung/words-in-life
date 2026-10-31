@@ -18,6 +18,7 @@ const baseURL = process.env.TEST_BASE_URL || 'http://127.0.0.1:4179';
       await page.locator('.scene-image > img').evaluate(img => img.decode());
       for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }, { width: 1440, height: 1000 }]) {
         await page.setViewportSize(viewport);
+        await page.evaluate(() => window.scrollTo(0, 0));
         const dimensions = await page.locator('.scene-image').evaluate(frame => {
           const image = frame.querySelector('img');
           const box = getComputedStyle(image);
@@ -48,11 +49,22 @@ const baseURL = process.env.TEST_BASE_URL || 'http://127.0.0.1:4179';
           'tilted photo must keep safe horizontal margins');
         assert.ok(composition.photo.bottom + 12 < composition.shutter.top,
           'floating camera action must not overlap the photo controls');
-        const contentBottom = await page.locator('.scene-page > main').evaluate(main => main.getBoundingClientRect().bottom);
-        assert.ok(composition.heading.bottom <= contentBottom,
-          'discovery heading must fit inside the visible scroll region');
-        assert.ok(contentBottom + 8 <= composition.shutter.top,
-          `scrollable results must stop above the floating camera action: ${viewport.width}x${viewport.height}, content=${contentBottom}, shutter=${composition.shutter.top}`);
+        const content = await page.locator('.scene-page > main').evaluate(main => ({
+          height: main.clientHeight, scrollHeight: main.scrollHeight,
+        }));
+        assert.ok(content.height >= content.scrollHeight - 1,
+          'results must expand with the full word list instead of clipping into a nested scroll region');
+        // A swipe anywhere on the result should move the document, including over the photo.
+        await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+        const lastWord = page.locator('.discovery-row').last();
+        const lastBox = await lastWord.boundingBox();
+        const shutterBox = await page.locator('.scene-capture').boundingBox();
+        assert.ok(lastBox.y >= 0 && lastBox.y + lastBox.height + 8 <= shutterBox.y,
+          'the last word and its controls must scroll fully above the camera button');
+        assert.ok(shutterBox.y + shutterBox.height <= viewport.height,
+          'the camera button must remain reachable at the end of the page');
+        await lastWord.getByRole('button', { name: /移除|收藏/ }).click();
+        await page.evaluate(() => window.scrollTo(0, 0));
       }
       await page.getByRole('button', { name: '隱藏標記' }).click();
       assert.equal(await page.locator('.scene-image .vs-marker').count(), 0);
@@ -63,6 +75,30 @@ const baseURL = process.env.TEST_BASE_URL || 'http://127.0.0.1:4179';
       await page.close();
       console.log(`${width}×${height}: full photo, marker coordinates, resizing and controls passed`);
     }
+    for (const cameraEnabled of [false, true]) {
+      const page = await browser.newPage({ viewport: { width: 320, height: 568 }, reducedMotion: 'reduce' });
+      await page.addInitScript(enabled => {
+        localStorage.setItem('words-in-life-camera-enabled-v1', String(enabled));
+        Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+          value: async () => { throw new DOMException('Test denied camera', 'NotAllowedError'); },
+        });
+      }, cameraEnabled);
+      await page.addLocatorHandler(page.getByRole('button', { name: '繼續探索照片' }), button => button.click());
+      await page.goto(baseURL);
+      await page.getByRole('button', { name: /今日尋寶/ }).click();
+      await page.getByRole('button', { name: '體驗範例照片', exact: true }).click();
+      await page.locator('.scene-page').waitFor();
+      await page.getByRole('button', { name: '再拍一張', exact: true }).scrollIntoViewIfNeeded();
+      assert.ok(await page.evaluate(() => window.scrollY > 0), 'the scene must be scrolled before returning');
+      await page.getByRole('button', { name: '再拍一張', exact: true }).click();
+      await page.locator('.home-page').waitFor();
+      assert.equal(await page.evaluate(() => window.scrollY), 0,
+        `returning to the camera must reset document scroll (camera enabled: ${cameraEnabled})`);
+      const toggle = await page.locator('.camera-toggle').boundingBox();
+      assert.ok(toggle.y >= 0 && toggle.y + toggle.height <= 568, 'camera power switch must be visible');
+      await page.close();
+    }
+    console.log('Small-screen return to camera: camera off and permission denied passed');
     const page = await browser.newPage({ reducedMotion: 'reduce' });
     const out = require('node:path').resolve(process.env.TEST_OUTPUT_DIR || 'test-results');
     require('node:fs').mkdirSync(out, { recursive: true });
