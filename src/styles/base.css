@@ -168,7 +168,7 @@
   .collection-open h2 { font-size: 18px; }
   .discovery-open span { display: none; }
 }
-.failure-page .vs-polaroid > img { aspect-ratio: 1.5; }
+.failure-page .vs-polaroid > img { aspect-ratio: auto; height: auto; }
 .failure-message { margin: 28px 0; }
 .failure-message h1 { font-size: 24px; font-weight: 700; margin-bottom: 16px; }
 .failure-message p, .failure-message li { font-size: 14px; color: var(--vs-muted); }

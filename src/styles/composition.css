@@ -18,7 +18,10 @@
 .home-viewfinder,.live-viewfinder { aspect-ratio: auto; min-height: 0; height: 100%; border: 10px solid #655947; outline: 1px solid #ae9778; border-radius: 25px; box-shadow: 0 0 0 7px #e5d6bc, 0 0 0 9px #cdb99b, inset 0 0 0 2px #e5d6bc; }
 .home-viewfinder > img { filter: saturate(.78) sepia(.13); }
 .viewfinder-corners { inset: 14px; border: 0; border-radius: 0; background: linear-gradient(#fff9ef,#fff9ef) left top/28px 3px no-repeat, linear-gradient(#fff9ef,#fff9ef) left top/3px 28px no-repeat, linear-gradient(#fff9ef,#fff9ef) right top/28px 3px no-repeat, linear-gradient(#fff9ef,#fff9ef) right top/3px 28px no-repeat, linear-gradient(#fff9ef,#fff9ef) left bottom/28px 3px no-repeat, linear-gradient(#fff9ef,#fff9ef) left bottom/3px 28px no-repeat, linear-gradient(#fff9ef,#fff9ef) right bottom/28px 3px no-repeat, linear-gradient(#fff9ef,#fff9ef) right bottom/3px 28px no-repeat; }
-.viewfinder-zoom { position: absolute; left: calc(50% - 23px); bottom: 14px; width: 46px; height: 46px; display: grid; place-items: center; border: 1px solid #fff9ef; border-radius: 50%; color: var(--vs-paper); background: var(--vs-overlay-bg); font-size: 17px; }
+.viewfinder-zoom { --vs-focus: var(--vs-focus-inverse); position: absolute; z-index: 3; left: 50%; bottom: 14px; transform: translateX(-50%); display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--vs-espresso); font-size: 14px; }
+.viewfinder-zoom > span { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--vs-paper); box-shadow: 0 2px 5px #30282040; }
+.viewfinder-zoom[aria-pressed=true] > span { background: var(--vs-action); }
+.viewfinder-zoom:hover > span { filter: brightness(.96); }
 .scene-demo-label { top: 24px; left: 24px; background: #30282065; font-size: 9px; padding: 1px 6px; border-radius: 3px; }
 .camera-controls { padding: 16px 12px; }
 .camera-controls .vs-shutter { width: 86px; height: 86px; border: 5px solid #40392f; outline: 5px solid #d1bca0; background: linear-gradient(145deg,#fc8b3f,#ed682b); box-shadow: inset 0 0 0 3px #f7d5ad, inset 0 0 0 7px #ec6c2c, inset 0 0 0 8px #c95d2c, 0 5px 7px #72513150; }
@@ -54,8 +57,9 @@
 .words-in-life-app .scene-page { width: min(100%,430px); padding: 0 18px calc(140px + env(safe-area-inset-bottom, 0px)); }
 .scene-page .page-header { min-height: 82px; padding: 22px 0 12px; }
 .scene-page .scene-polaroid { padding: 18px 18px 38px; margin: 20px 4px 30px; transform: rotate(-4deg); }
-.scene-polaroid .scene-image { aspect-ratio: 4/5; }
-.scene-polaroid .scene-image > img { width: 100%; height: 100%; object-fit: cover; }
+/* Keep the full source photo and the marker coordinate space at the same ratio. */
+.scene-polaroid .scene-image { aspect-ratio: auto; height: auto; }
+.scene-polaroid .scene-image > img { width: 100%; height: auto; display: block; }
 .scene-polaroid .vs-marker { font-size: 16px; min-height: 36px; padding: 3px 12px 3px 0; font-weight: 400; max-width: 37%; box-shadow: 0 3px 7px #49311c24; }
 .scene-polaroid .vs-marker::after { content: ''; position: absolute; inset: -4px 0; }
 .scene-page .discovery-sheet { padding: 8px 14px; box-shadow: 0 3px 10px #49311c25; }
@@ -136,11 +140,9 @@
   .word-detail-dialog .detail-polaroid > img { min-height: 120px; }
 }
 .scene-page .scene-polaroid { margin-top: 14px; margin-bottom: 22px; padding-bottom: 28px; }
-.scene-polaroid .scene-image { aspect-ratio: auto; height: clamp(230px,calc(100dvh - var(--scene-rows) * 60px - 220px),440px); }
 .collection-page .page-header { min-height: 86px; }
 .collection-page .category-strip { padding-bottom: 16px; }
 .collection-open img,.collection-open .photo-placeholder { aspect-ratio: 3/3.8; }
-.scene-polaroid .scene-image { height: clamp(220px,calc(100dvh - var(--scene-rows) * 60px - 255px),440px); }
 .developing-photo progress:indeterminate::-webkit-progress-bar { background: linear-gradient(to right,var(--vs-sand) 0 20%,var(--vs-action) 20% 65%,var(--vs-sand) 65%); }
 .developing-photo progress:indeterminate::-moz-progress-bar { background: var(--vs-action); }
 /* Homepage actions: integrated collection counter, live camera, gallery and mission overlay. */
@@ -153,7 +155,9 @@
 .collection-counter:active { box-shadow: inset 0 2px 3px #70573426; }
 .home-page .camera-stripes { left: 52%; }
 .home-viewfinder { text-align: initial; isolation: isolate; }
-.home-viewfinder > video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.camera-preview { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+.camera-preview-frame { flex: none; overflow: hidden; }
+.home-viewfinder video { width: 100%; height: 100%; object-fit: contain; display: block; transform-origin: center; }
 .mission-viewfinder-controls { position: absolute; top: 18px; left: 16px; right: 16px; display: flex; justify-content: center; align-items: center; gap: 4px; z-index: 3; }
 .mission-viewfinder-entry { min-height: 44px; max-width: 100%; padding: 8px 14px; display: inline-flex; gap: 10px; align-items: center; border-radius: 24px; background: var(--vs-overlay-bg); color: var(--vs-paper); font-size: 12px; }
 .mission-viewfinder-entry span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -190,7 +194,7 @@
 ::view-transition-new(captured-photo) { animation-duration: .42s; animation-timing-function: ease-in-out; }
 /* Cover the paper character with the entire print, including its white frame. */
 .home-print-photo::before { content: ''; position: absolute; inset: 0; z-index: 0; background: inherit; pointer-events: none; }
-.home-print-photo img { position: relative; z-index: 1; display: block; width: 100%; aspect-ratio: 4/5; max-height: max(120px, calc(100dvh - 420px)); object-fit: cover; filter: saturate(.75) contrast(.84) brightness(1.08); animation: develop-image 1.6s ease-out forwards; }
+.home-print-photo img { position: relative; z-index: 1; display: block; width: 100%; aspect-ratio: 4/5; max-height: max(120px, calc(100dvh - 420px)); object-fit: contain; filter: saturate(.75) contrast(.84) brightness(1.08); animation: develop-image 1.6s ease-out forwards; }
 .home-print-photo figcaption { position: relative; z-index: 1; display: grid; place-items: center; min-height: 96px; padding: 12px 4px 18px; background: #fffdf9; color: var(--vs-coffee); text-align: center; font-size: 13px; letter-spacing: normal; opacity: 0; animation: print-caption .35s ease-out 1.2s forwards; }
 .recognition-search { position: relative; width: 100px; height: 36px; margin-bottom: 6px; }
 .recognition-magnifier { position: absolute; top: 0; left: 35px; width: 28px; height: 28px; border: 3px solid var(--vs-coffee); border-radius: 50%; background: #edf2ef; box-shadow: inset 2px 2px 0 #fffdf9; transform-origin: center; animation: recognition-search 4.8s ease-in-out infinite; }

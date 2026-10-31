@@ -51,10 +51,10 @@ export function HomeView(props: HomeViewProps) {
           <div className="camera-stripes" aria-hidden="true"><i /><i /><i /></div><div className="camera-lens" aria-hidden="true" />
         </div>
         <div className="home-viewfinder" aria-label="即時相機觀景窗" inert={!!props.printingImage}>
-          <video ref={camera.videoRef} autoPlay muted playsInline onLoadedData={camera.onReady} aria-label="相機即時影像" />
+          <div ref={camera.previewRef} className="camera-preview"><div className="camera-preview-frame" style={camera.previewStyle}><video ref={camera.videoRef} autoPlay muted playsInline onLoadedData={camera.onReady} onResize={camera.onReady} style={{ transform: `scale(${camera.zoom})` }} aria-label="相機即時影像" /></div></div>
           <div className="mission-viewfinder-controls"><button className="mission-viewfinder-entry" aria-haspopup="dialog" onClick={() => setExploring(true)}><span>{target ? `尋找：${target.targetChinese}` : '今日尋寶'}</span><span>{completed}/{props.dailyMissions.length}</span><ChevronDown /></button>{target && <IconButton className="cancel-quest" label="取消目前任務" onClick={props.onCancelQuest}><X /></IconButton>}</div>
           <span className="viewfinder-corners" />
-          {props.cameraEnabled && camera.status === 'ready' && <span className="viewfinder-zoom">1x</span>}
+          {props.cameraEnabled && camera.status === 'ready' && <button className="viewfinder-zoom" type="button" aria-label={`目前 ${camera.zoom} 倍，切換至 ${camera.zoom === 1 ? 2 : 1} 倍`} aria-pressed={camera.zoom === 2} onClick={() => camera.setZoom(previous => previous === 1 ? 2 : 1)}><span>{camera.zoom}x</span></button>}
           {!props.cameraEnabled && <div className="home-camera-status" role="status"><CameraOff aria-hidden="true" /><p>鏡頭已暫時關閉<br />點選左上角開關即可繼續拍照</p></div>}
           {props.cameraEnabled && camera.status !== 'ready' && <div className="home-camera-status" role={camera.status === 'error' ? 'alert' : 'status'}><Camera /><p>{camera.status === 'starting' ? '正在開啟相機…' : camera.error}</p>{camera.status === 'error' && <><Button variant="secondary" onClick={camera.retry}><RotateCcw />重新嘗試</Button><Button onClick={() => file.current?.click()}><Image />選擇照片</Button><Button variant="ghost" className="sample-fallback" onClick={() => setExploring(true)}>先體驗範例照片</Button></>}</div>}
         </div>
