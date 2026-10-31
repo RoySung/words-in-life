@@ -1,6 +1,7 @@
 import { useId, type ButtonHTMLAttributes, type CSSProperties, type InputHTMLAttributes, type ReactNode } from 'react';
 import { Camera, Home, Images, LoaderCircle, Search, Volume2 } from 'lucide-react';
 import './foundation.css';
+import { PhotoImage, type PhotoImageProps } from '../hooks/usePhotoUrl';
 
 const classes = (...values: (string | undefined | false)[]) => values.filter(Boolean).join(' ');
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'ghost'; loading?: boolean };
@@ -23,11 +24,11 @@ export function SearchField({ label = '搜尋單字', error, ...props }: InputHT
 export function Progress({ value, label }: { value?: number; label: string }) {
   return <div className="vs-progress"><span>{label}</span><progress aria-label={label} max={100} value={value === undefined ? undefined : Math.min(100, Math.max(0, value))} /></div>;
 }
-export function Polaroid({ src, alt, children, taped = false, className }: { src: string | undefined; alt: string; children?: ReactNode; taped?: boolean; className?: string }) {
-  return <figure className={classes('vs-polaroid', taped && 'vs-polaroid--taped', className)}><img src={src} alt={alt} loading="lazy" />{children && <figcaption>{children}</figcaption>}</figure>;
+export function Polaroid({ src, alt, children, taped = false, className, photo, urls, fallbackPhoto, fallbackSrc }: Pick<PhotoImageProps, 'src' | 'alt' | 'photo' | 'urls' | 'fallbackPhoto' | 'fallbackSrc'> & { children?: ReactNode; taped?: boolean; className?: string }) {
+  return <figure className={classes('vs-polaroid', taped && 'vs-polaroid--taped', className)}><PhotoImage photo={photo} urls={urls} src={src} fallbackPhoto={fallbackPhoto} fallbackSrc={fallbackSrc} alt={alt} loading="lazy" />{children && <figcaption>{children}</figcaption>}</figure>;
 }
-export function PhotoMarker({ label, x, y, onClick }: { label: string; x: number; y: number; onClick: () => void }) {
-  return <button type="button" className="vs-marker" style={{ '--marker-x': `${x}%`, '--marker-y': `${y}%` } as CSSProperties} onClick={onClick} aria-label={`查看 ${label}`}><span aria-hidden="true" />{label}</button>;
+export function PhotoMarker({ label, x, y, onClick, labelOffset }: { label: string; x: number; y: number; onClick: () => void; labelOffset?: { x: number; y: number } }) {
+  return <button type="button" className={classes('vs-marker', x > 60 && 'vs-marker--left', !!labelOffset && 'vs-marker--positioned')} style={{ '--marker-x': `${x}%`, '--marker-y': `${y}%`, '--marker-label-x': `${labelOffset?.x ?? 0}px`, '--marker-label-y': `${labelOffset?.y ?? 0}px` } as CSSProperties} onClick={onClick} aria-label={`查看 ${label}`}><span className="vs-marker-dot" aria-hidden="true" /><span className="vs-marker-label" lang="en">{label}</span></button>;
 }
 export function WordRow({ image, word, translation, action, onSpeak }: { image: string; word: string; translation: string; action: ReactNode; onSpeak: () => void }) {
   return <div className="vs-word-row"><img src={image} alt="" loading="lazy" /><div><strong lang="en">{word}</strong><span>{translation}</span></div><IconButton label={`播放 ${word} 發音`} onClick={onSpeak}><Volume2 /></IconButton>{action}</div>;

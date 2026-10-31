@@ -43,10 +43,10 @@ export function FlashcardQuiz({ words: sourceWords, onClose, onReview, photoUrls
   return <dialog ref={dialog} className="word-dialog vs-surface-dark quiz-dialog" aria-label="單字翻卡測驗"><header className="page-header"><IconButton label="結束複習" onClick={onClose}><ChevronLeft /></IconButton><h1>單字翻卡</h1><span>{Math.min(index + 1, words.length)} / {words.length}</span></header>
     {saveError && <p role="alert">{saveError}</p>}
     {word ? <main><Progress label="複習進度" value={index / words.length * 100} /><article className={`quiz-card ${busy ? "is-advancing" : ""}`} aria-label="照片翻卡" aria-busy={busy}>
-      {nextWord && <div className="quiz-next-card quiz-face quiz-face--front" aria-hidden="true" inert>{nextWord.crop || nextWord.photo || nextWord.stickerUrl || nextWord.imageUrl ? <PhotoImage photo={nextWord.crop || nextWord.photo} urls={photoUrls} src={nextWord.stickerUrl || nextWord.imageUrl} alt="" /> : <div className="quiz-photo-missing"><Image /></div>}<span className="quiz-face-hint">看照片，想想它的英文。<br />點一下翻卡看解答</span></div>}
+      {nextWord && <div className="quiz-next-card quiz-face quiz-face--front" aria-hidden="true" inert>{nextWord.crop || nextWord.photo || nextWord.stickerUrl || nextWord.imageUrl ? <PhotoImage photo={nextWord.crop || nextWord.photo} urls={photoUrls} src={nextWord.stickerUrl} fallbackPhoto={nextWord.photo} fallbackSrc={nextWord.originalImageUrl || nextWord.imageUrl} alt="" /> : <div className="quiz-photo-missing"><Image /></div>}<span className="quiz-face-hint">看照片，想想它的英文。<br />點一下翻卡看解答</span></div>}
       <div key={word.id} className={`quiz-card-turn ${flipped ? 'is-flipped' : ''}`}>
         <div className="quiz-face quiz-face--front" aria-hidden={flipped} inert={flipped}>
-          {word.crop || word.photo || word.stickerUrl || word.imageUrl ? <PhotoImage photo={word.crop || word.photo} urls={photoUrls} src={word.stickerUrl || word.imageUrl} alt="待辨識的物品照片" /> : <div className="quiz-photo-missing"><Image /><p>這個單字沒有照片</p></div>}
+          {word.crop || word.photo || word.stickerUrl || word.imageUrl ? <PhotoImage photo={word.crop || word.photo} urls={photoUrls} src={word.stickerUrl} fallbackPhoto={word.photo} fallbackSrc={word.originalImageUrl || word.imageUrl} alt="待辨識的物品照片" /> : <div className="quiz-photo-missing"><Image /><p>這個單字沒有照片</p></div>}
           <span className="quiz-face-hint">看照片，想想它的英文。<br />點一下翻卡看解答</span>
           <button type="button" className="quiz-flip-trigger" disabled={busy} onClick={() => setFlipped(true)} aria-label="翻卡查看解答" aria-pressed={false} />
         </div>

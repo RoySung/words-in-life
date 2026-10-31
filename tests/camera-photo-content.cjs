@@ -77,6 +77,15 @@ async function assertFullPhoto(locator, label) {
         for (const [name, viewport] of [['mobile', { width: 390, height: 844 }], ['small', { width: 320, height: 568 }], ['desktop', { width: 1440, height: 1000 }]]) {
           await page.setViewportSize(viewport);
           await assertFullPhoto(print, `print ${width}×${height} at ${viewport.width}px`);
+          const geometry = await print.evaluate(img => ({
+            ratio: img.clientWidth / img.clientHeight,
+            sourceRatio: img.naturalWidth / img.naturalHeight,
+            sideBorder: (img.parentElement.clientWidth - img.clientWidth) / 2,
+          }));
+          assert.ok(Math.abs(geometry.ratio - geometry.sourceRatio) < .02,
+            'print image box must follow the source ratio without internal blank space');
+          assert.ok(Math.abs(geometry.sideBorder - 12) <= 1,
+            'print frame must keep narrow side borders for every photo ratio');
           const cancel = page.getByRole('button', { name: '取消辨識' });
           await cancel.scrollIntoViewIfNeeded();
           assert.equal(await cancel.isVisible(), true);

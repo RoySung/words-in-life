@@ -25,6 +25,7 @@ function ExploreSheet({ children, onClose }: { children: React.ReactNode; onClos
 }
 export function HomeView(props: HomeViewProps) {
   const [exploring, setExploring] = useState(false);
+  const [printPhotoRatio, setPrintPhotoRatio] = useState(4 / 5);
   const onMissionsOpenChange = props.onMissionsOpenChange;
   useEffect(() => {
     onMissionsOpenChange?.(exploring);
@@ -61,9 +62,9 @@ export function HomeView(props: HomeViewProps) {
         <div className="camera-controls" inert={!!props.printingImage}><div className="camera-control-label"><IconButton className="gallery-thumbnail" label="選照片" onClick={() => file.current?.click()}><Image /></IconButton><span>選照片</span></div><ShutterButton onClick={takePhoto} disabled={!props.cameraEnabled || camera.status !== 'ready'} /><div className="camera-control-label"><button className="collection-counter" aria-label={`我的單字，已收藏 ${props.savedWords.length} 個單字`} onClick={props.onOpenFavorites}><Images aria-hidden="true" /><span aria-hidden="true">{props.savedWords.length}</span></button><span>我的單字</span></div></div>
         <input ref={file} hidden type="file" accept="image/*" onChange={props.onSelectFile} />
         <div className="camera-print-slot"><span aria-hidden="true">SNAP · LEARN · GROW</span>{props.printingImage && <div className="print-output">
-          <figure className="home-print-photo" aria-label="正在辨識的照片" onAnimationEnd={event => { if (event.target === event.currentTarget && event.animationName === 'print-feed') props.onPrintComplete?.(); }}>
+          <figure className="home-print-photo" style={{ '--print-photo-ratio': printPhotoRatio } as React.CSSProperties} aria-label="正在辨識的照片" onAnimationEnd={event => { if (event.target === event.currentTarget && event.animationName === 'print-feed') props.onPrintComplete?.(); }}>
             {['right', 'top', 'left', 'bottom'].map(side => <div key={side} className={`recognition-paper recognition-paper--${side}`} aria-hidden="true"><span className="recognition-paper-eyes"><i /><i /></span><span className="recognition-paper-smile" /><span className="recognition-paper-fold" /></div>)}
-            <img src={props.printingImage} alt="剛選擇的照片" />
+            <img src={props.printingImage} alt="剛選擇的照片" onLoad={event => { const image = event.currentTarget; setPrintPhotoRatio(image.naturalWidth / image.naturalHeight); }} />
             <figcaption>
               <div className="recognition-search" aria-hidden="true"><span className="recognition-magnifier"><span className="recognition-lens-detail"><i /><i /><i /></span></span></div>
               <span role="status">正在找照片裡的單字<span className="recognition-dots" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span></span>

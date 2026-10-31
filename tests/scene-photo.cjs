@@ -38,6 +38,21 @@ const baseURL = process.env.TEST_BASE_URL || 'http://127.0.0.1:4179';
         assert.equal(dimensions.markerX, '33%', 'marker x must stay in original photo coordinates');
         assert.equal(dimensions.markerY, '52%', 'marker y must stay in original photo coordinates');
         assert.equal(dimensions.overflow, false, 'photo must not cause horizontal overflow');
+        const composition = await page.evaluate(() => {
+          const box = selector => document.querySelector(selector).getBoundingClientRect();
+          return { photo: box('.scene-polaroid').toJSON(), heading: box('.discovery-sheet h1').toJSON(), shutter: box('.scene-capture').toJSON(), height: innerHeight, width: innerWidth };
+        });
+        assert.ok(composition.heading.bottom < composition.height,
+          'discovery heading must appear in the first viewport');
+        assert.ok(composition.photo.left >= 8 && composition.photo.right <= composition.width - 8,
+          'tilted photo must keep safe horizontal margins');
+        assert.ok(composition.photo.bottom + 12 < composition.shutter.top,
+          'floating camera action must not overlap the photo controls');
+        const contentBottom = await page.locator('.scene-page > main').evaluate(main => main.getBoundingClientRect().bottom);
+        assert.ok(composition.heading.bottom <= contentBottom,
+          'discovery heading must fit inside the visible scroll region');
+        assert.ok(contentBottom + 8 <= composition.shutter.top,
+          `scrollable results must stop above the floating camera action: ${viewport.width}x${viewport.height}, content=${contentBottom}, shutter=${composition.shutter.top}`);
       }
       await page.getByRole('button', { name: '隱藏標記' }).click();
       assert.equal(await page.locator('.scene-image .vs-marker').count(), 0);

@@ -25,7 +25,7 @@ export function FavoritesView({ photoUrls, savedWords, onBack, onSelectItem, onR
       {!filtered.length ? <div className="empty-state"><BookOpen /><h2>{savedWords.length ? '找不到這個單字' : '把日常，收進單字本'}</h2><p>{savedWords.length ? '試試其他關鍵字或分類。' : '拍下一張照片，收藏你想記住的英文。'}</p><Button onClick={savedWords.length ? () => { setQuery(''); setCategory('全部'); } : onBack}>{savedWords.length ? '顯示全部單字' : '開始探索'}</Button></div> :
       <div className={`word-gallery ${list ? 'word-gallery--list' : ''}`}>{filtered.map(w => <article className="collection-card" key={w.id}>
         <button className="collection-open" onClick={() => onSelectItem({ ...w, position: w.position || { x: 50, y: 50 } })} aria-label={`查看 ${w.word} ${w.chinese}`}>
-          {w.crop || w.photo || w.stickerUrl || w.imageUrl ? <PhotoImage photo={w.crop || w.photo} urls={photoUrls} src={w.stickerUrl || w.imageUrl} alt={w.chinese} loading="lazy" /> : <div className="photo-placeholder"><Image /></div>}
+          {w.crop || w.photo || w.stickerUrl || w.imageUrl ? <PhotoImage photo={w.crop || w.photo} urls={photoUrls} src={w.stickerUrl} fallbackPhoto={w.photo} fallbackSrc={w.originalImageUrl || w.imageUrl} alt={w.chinese} loading="lazy" /> : <div className="photo-placeholder"><Image /></div>}
           <div><h2 lang="en">{w.word}</h2><p>{w.chinese}</p></div>
         </button>
         <div className="collection-actions"><IconButton label={`播放 ${w.word} 發音`} onClick={() => speakEnglish(w.word)}><Volume2 /></IconButton><IconButton label={`查看 ${w.word} 原圖`} onClick={() => setSource(w)} disabled={!w.photo && !w.originalImageUrl && !w.imageUrl}><Image /></IconButton><IconButton label={`移除 ${w.word}`} onClick={() => onRemoveWord(w.id)}><Trash2 /></IconButton></div>

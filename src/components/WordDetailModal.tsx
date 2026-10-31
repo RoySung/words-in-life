@@ -1,4 +1,4 @@
-import { usePhotoUrl, type PhotoUrls } from '../hooks/usePhotoUrl';
+import { type PhotoUrls } from '../hooks/usePhotoUrl';
 import React, { useState } from 'react';
 import { ChevronLeft, Volume2, Eye, MoreVertical } from 'lucide-react';
 import { DetectedItem } from '../types';
@@ -61,11 +61,10 @@ export const WordDetailModal: React.FC<WordDetailModalProps> = ({
   };
 
   const source = item.originalImageUrl || imageUrl || '';
-  const preview = usePhotoUrl(item.crop || item.photo, item.stickerUrl || source, photoUrls);
   return <dialog ref={dialogRef} className={`word-dialog vs-surface-dark word-detail-dialog ${more ? "is-expanded" : ""}`} aria-label={`${item.word} 單字詳情`}>
     <header className="page-header"><IconButton label="關閉單字詳情" onClick={onClose}><ChevronLeft /></IconButton><span /><IconButton label={isSaved ? '移除收藏' : '收藏單字'} aria-pressed={isSaved} onClick={onToggleSave}><Bookmark fill={isSaved ? 'currentColor' : 'none'} /></IconButton></header>
     {storageError && <p role="alert" className="vs-error">{storageError}</p>}
-    <main><Polaroid src={preview} alt={item.chinese} taped className="detail-polaroid">
+    <main><Polaroid photo={item.crop || item.photo} urls={photoUrls} src={item.stickerUrl} fallbackPhoto={item.photo} fallbackSrc={source} alt={item.chinese} taped className="detail-polaroid">
       <div className="detail-word"><h1 lang="en">{item.word}</h1><IconButton label="播放單字發音" disabled={isPlayingAudio} onClick={() => handlePlayWord()}><Volume2 /></IconButton><IconButton className="word-menu" label="更多用法與發音" aria-expanded={more} onClick={() => setMore(!more)}><MoreVertical /></IconButton></div>
       <p className="phonetic">{item.phonetic}</p><p className="translation">{item.chinese}</p><div className="action-group"><Tag>{item.partOfSpeech}</Tag><Tag tone="blue">{wordCategory(item.word)}</Tag></div>
       <div className="word-example"><div><p lang="en">{item.exampleEn}</p><IconButton label="播放例句" disabled={isPlayingExample} onClick={handlePlayExample}><Volume2 /></IconButton></div><p>{item.exampleZh}</p></div>
