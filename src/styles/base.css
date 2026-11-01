@@ -58,7 +58,7 @@
 .word-gallery { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
 .collection-card { padding: 7px; background: var(--vs-surface) url('/design-system/paper-grain.png'); box-shadow: var(--vs-shadow-paper); border-radius: 6px; min-width: 0; }
 .collection-open { width: 100%; text-align: left; }
-.collection-open :is(img, .photo-unavailable, .photo-loading), .photo-placeholder { width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 2px; }
+.collection-open :is(img, .photo-unavailable, .photo-loading), .photo-placeholder { width: 100%; aspect-ratio: 3/4; object-fit: contain; background: var(--vs-surface); border-radius: 2px; }
 .photo-placeholder { display: grid; place-items: center; background: var(--vs-sand); }
 .collection-open h2 { font: 600 20px/1.2 var(--vs-font-note); margin: 10px 3px 0; overflow-wrap: anywhere; }
 .collection-open p { font-size: 12px; color: var(--vs-muted); margin: 3px; }
@@ -92,7 +92,7 @@
 .discovery-row { display: flex; gap: 2px; align-items: center; border-bottom: 1px solid var(--vs-sand); padding: 8px 0; }
 .discovery-row:last-child { border: 0; }
 .discovery-open { display: flex; align-items: center; gap: 10px; text-align: left; flex: 1; min-width: 0; flex-wrap: wrap; }
-.discovery-open :is(img, .photo-unavailable, .photo-loading) { width: 46px; height: 50px; object-fit: cover; border-radius: 4px; }
+.discovery-open :is(img, .photo-unavailable, .photo-loading) { width: 46px; height: 50px; object-fit: contain; background: var(--vs-surface); border-radius: 4px; }
 .discovery-open strong { font-size: 15px; overflow-wrap: anywhere; }
 .discovery-open > span:not(.photo-unavailable):not(.photo-loading) { font-size: 11px; color: var(--vs-muted); }
 .discovery-row .vs-icon-button { width: 36px; }
@@ -181,7 +181,7 @@
 .quiz-card-turn { display: grid; transform-style: preserve-3d; transition: transform 560ms cubic-bezier(.22,.7,.25,1); }
 .quiz-card-turn.is-flipped { transform: rotateY(180deg); }
 .quiz-face { --vs-focus: var(--vs-focus-default); grid-area: 1 / 1; position: relative; display: flex; flex-direction: column; min-width: 0; min-height: clamp(340px,52dvh,480px); padding: 18px 18px 70px; border-radius: 3px; background: #fffdf9 url('/design-system/paper-grain.png'); box-shadow: var(--vs-shadow-paper); backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-.quiz-face--front > :is(img, .photo-unavailable, .photo-loading) { display: block; width: 100%; height: clamp(240px,37dvh,340px); object-fit: cover; flex: 1; min-height: 0; }
+.quiz-face--front > :is(img, .photo-unavailable, .photo-loading) { display: block; width: 100%; height: clamp(240px,37dvh,340px); object-fit: contain; background: var(--vs-surface); flex: 1; min-height: 0; }
 .quiz-face--back { transform: rotateY(180deg); justify-content: center; }
 .quiz-face-hint { position: absolute; bottom: 20px; left: 18px; right: 18px; color: var(--vs-muted); font-size: 12px; line-height: 1.6; }
 .quiz-face--back .quiz-face-hint { text-align: left; }

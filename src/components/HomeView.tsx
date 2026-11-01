@@ -39,7 +39,7 @@ export function HomeView(props: HomeViewProps) {
   const takePhoto = () => { const image = camera.capture(); if (image) { playSfx('shutter'); props.onCapture(image); } };
   return <div className={`app-page home-page${props.printingImage ? ' is-printing' : ''}${props.printingFromCamera ? ' is-capture' : ''}`}>
     <header className="camera-utility">
-      <span>Words in Life</span>
+      <span>Words in Life <small className="app-version" aria-label={`版本 ${import.meta.env.VITE_APP_VERSION}`}>v{import.meta.env.VITE_APP_VERSION}</small></span>
       {props.onOpenSettings && <button type="button" className="home-settings-button" onClick={props.onOpenSettings} disabled={!!props.printingImage} aria-label={props.hasGeminiKey ? '開啟設定' : '尚未設定 API key，前往設定'}><Settings aria-hidden="true" /></button>}
     </header>
     <main>

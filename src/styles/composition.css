@@ -89,7 +89,7 @@
 .word-detail-dialog .page-header { min-height: 86px; padding: 22px 0 14px; flex-shrink: 0; }
 .word-detail-dialog > main { min-height: 0; flex: 1; display: flex; padding: 12px 0 18px; }
 .word-detail-dialog .detail-polaroid { width: 100%; margin: 0; padding: 20px 20px 24px; transform: rotate(-3deg); display: flex; flex-direction: column; }
-.word-detail-dialog .detail-polaroid > :is(img, .photo-unavailable, .photo-loading) { min-height: 160px; height: auto; flex: 1; width: 100%; object-fit: cover; aspect-ratio: auto; }
+.word-detail-dialog .detail-polaroid > :is(img, .photo-unavailable, .photo-loading) { min-height: 160px; height: auto; flex: 1; width: 100%; object-fit: contain; background: var(--vs-surface); aspect-ratio: auto; }
 .word-detail-dialog .detail-polaroid figcaption { padding: 16px 0 0; flex-shrink: 0; }
 .word-detail-dialog .detail-word { gap: 8px; }
 .word-detail-dialog .detail-word h1 { font: 600 32px/1.2 var(--vs-font-latin); }
@@ -150,6 +150,7 @@
 .developing-photo progress:indeterminate::-moz-progress-bar { background: var(--vs-action); }
 /* Homepage actions: integrated collection counter, live camera, gallery and mission overlay. */
 .camera-utility > span { font: 400 14px var(--vs-font-latin); letter-spacing: .07em; color: var(--vs-coffee); }
+.camera-utility .app-version { margin-left: 6px; font-size: 11px; letter-spacing: 0; color: var(--vs-muted); white-space: nowrap; }
 .home-page .camera-top { padding-left: 10px; }
 .collection-counter { display: inline-flex; align-items: center; gap: 9px; min-width: 84px; height: 44px; padding: 7px 12px; border: 1px solid #d2bea2; border-radius: 13px; background: #eee0c9 url('/design-system/paper-grain.png'); color: var(--vs-coffee); box-shadow: inset 0 1px 2px #fff9efb0, 0 1px 2px #70573412; }
 .words-in-life-app .collection-counter svg { width: 22px; height: 22px; stroke-width: 1.7; }

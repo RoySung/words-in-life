@@ -1,4 +1,5 @@
 import type { PhotoRef } from './domain/photos';
+import type { BoundingBox } from './domain/vocabulary';
 export interface DetectedItem {
   id: string;
   word: string;
@@ -10,6 +11,7 @@ export interface DetectedItem {
   exampleZh: string;
   collocations: string[];
   emoji: string;
+  boundingBox?: BoundingBox;
   position: {
     x: number; // percentage (8 to 92)
     y: number; // percentage (12 to 88)
@@ -40,6 +42,7 @@ export interface SavedWord {
   exampleZh: string;
   collocations: string[];
   emoji: string;
+  boundingBox?: BoundingBox;
   savedAt: number;
   sceneTitle?: string;
   imageUrl?: string;

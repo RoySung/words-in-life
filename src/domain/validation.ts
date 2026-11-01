@@ -1,4 +1,4 @@
-import type { VocabularyItem } from './vocabulary';
+import type { BoundingBox, VocabularyItem } from './vocabulary';
 
 export const record = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -17,6 +17,13 @@ export function coordinate(value: unknown, min: number, max: number): number {
   else if (number > 100) number /= 10;
   return Math.min(max, Math.max(min, Math.round(number)));
 }
+export function parseBoundingBox(value: unknown): BoundingBox | undefined {
+  if (!record(value)) return undefined;
+  const { left, top, right, bottom } = value;
+  if (![left, top, right, bottom].every(n => typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 100)) return undefined;
+  if (Number(right) <= Number(left) || Number(bottom) <= Number(top)) return undefined;
+  return { left, top, right, bottom } as BoundingBox;
+}
 export function parseItem(value: unknown): VocabularyItem | null {
   if (!record(value) || !text(value.word) || !text(value.chinese)) return null;
   const word = text(value.word);
@@ -28,6 +35,7 @@ export function parseItem(value: unknown): VocabularyItem | null {
     exampleEn: text(value.exampleEn, `Look at the ${word}.`),
     exampleZh: text(value.exampleZh, `看著這個${text(value.chinese)}。`),
     collocations: strings(value.collocations), emoji: text(value.emoji, '✨'),
+    boundingBox: parseBoundingBox(value.boundingBox),
     position: { x: coordinate(position.x, 8, 92), y: coordinate(position.y, 12, 88) },
   };
 }

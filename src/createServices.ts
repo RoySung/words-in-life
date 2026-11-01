@@ -39,7 +39,7 @@ export function createServices() {
     const prepared = await Promise.all(INITIAL_SAVED_WORDS.map(async word => {
       const source = word.originalImageUrl || word.imageUrl;
       const original = await preparePhoto(source);
-      const crop = await preparePhoto(source && word.position ? await generateSticker(source, word.position) : undefined);
+      const crop = await preparePhoto(source ? await generateSticker(source, word.boundingBox) : undefined);
       return { word: { ...parseItem(word)!, savedAt: word.savedAt, sceneTitle: word.sceneTitle, photo: original.ref, crop: crop.ref }, photos: [...original.photos, ...crop.photos] };
     }));
     return { words: prepared.map(p => p.word), photos: prepared.flatMap(p => p.photos) };

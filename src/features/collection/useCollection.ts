@@ -13,7 +13,7 @@ export function useCollection(words: SavedWord[], store: LibraryStore, analysis:
     const result = await store.run(async () => {
       const source = item.originalImageUrl || analysis?.imageUrl;
       const original = item.photo ? { ref: item.photo, photos: [] } : await preparePhoto(source);
-      const cropped = item.crop ? { ref: item.crop, photos: [] } : await preparePhoto(item.stickerUrl || (source ? await generateSticker(source, item.position) : undefined));
+      const cropped = item.crop ? { ref: item.crop, photos: [] } : await preparePhoto(item.stickerUrl || (source ? await generateSticker(source, item.boundingBox) : undefined));
       return store.services.library.saveWord({ ...parseItem(item)!, savedAt: Date.now(), sceneTitle: analysis?.sceneTitle,
         photo: original.ref, crop: cropped.ref }, [...original.photos, ...cropped.photos]);
     });

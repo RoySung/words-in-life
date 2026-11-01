@@ -69,6 +69,18 @@ test('coordinate clamping applies to fractions, invalid values and both axes', (
   assert.equal(coordinate('50', 8, 92), 50);
 });
 
+test('object bounds use explicit percentages, preserve edges, and reject unsafe crops', () => {
+  const boundingBox = { left: 0, top: 1, right: 100, bottom: 99.5 };
+  const parsed = parseItem({ word: 'scissors', chinese: '剪刀', boundingBox });
+  assert.deepEqual(parsed?.boundingBox, boundingBox);
+  assert.deepEqual(parseItem(parsed)?.boundingBox, boundingBox, 'repeated parsing must retain bounds');
+  for (const box of [null, {}, { ...boundingBox, left: '0' }, { ...boundingBox, top: NaN },
+    { ...boundingBox, bottom: Infinity }, { ...boundingBox, left: -1 }, { ...boundingBox, right: 101 },
+    { ...boundingBox, left: 100 }, { ...boundingBox, top: 99.5 }, { ...boundingBox, left: 90, right: 10 }]) {
+    assert.equal(parseItem({ word: 'scissors', chinese: '剪刀', boundingBox: box })?.boundingBox, undefined);
+  }
+});
+
 test('review summaries persist counts without claiming spaced repetition', () => {
   let word: SavedWord = { ...item('cup'), savedAt: 0 };
   word = reviewWord(word, true, 100);

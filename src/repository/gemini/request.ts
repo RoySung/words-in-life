@@ -27,7 +27,7 @@ export const analysisResponseSchema = {
     },
     items: {
       type: Type.ARRAY,
-      description: 'List of 4 to 8 identifiable objects, items, or elements in the photo for practical English learning. Empty if not recognizable.',
+      description: 'Up to 8 clearly identifiable objects, items, or elements for practical English learning. Return fewer for simple scenes. Empty if not recognizable.',
       items: {
         type: Type.OBJECT,
         properties: {
@@ -72,16 +72,27 @@ export const analysisResponseSchema = {
             type: Type.STRING,
             description: 'Single best matching emoji symbol, e.g. ☕, 💻, 🪴, 🪑, 📱',
           },
+          boundingBox: {
+            type: Type.OBJECT,
+            description: 'Bounds of the ENTIRE visible object, including all extremities, in image percentages 0–100 from the top-left. Never return only a distinctive part. For broad surfaces (table, wall, floor), bound the whole visible surface; use the full image when it extends across the scene.',
+            properties: {
+              left: { type: Type.NUMBER, description: 'Left edge percentage, 0–100' },
+              top: { type: Type.NUMBER, description: 'Top edge percentage, 0–100' },
+              right: { type: Type.NUMBER, description: 'Right edge percentage, greater than left, up to 100' },
+              bottom: { type: Type.NUMBER, description: 'Bottom edge percentage, greater than top, up to 100' },
+            },
+            required: ['left', 'top', 'right', 'bottom'],
+          },
           position: {
             type: Type.OBJECT,
             properties: {
               x: {
                 type: Type.NUMBER,
-                description: 'Horizontal center position percentage of this object on the image, strictly between 8 and 92',
+                description: 'Horizontal marker anchor on a visible, unobstructed part of this object, percentage strictly between 8 and 92. For surfaces, avoid placing it on foreground objects.',
               },
               y: {
                 type: Type.NUMBER,
-                description: 'Vertical center position percentage of this object on the image, strictly between 12 and 88',
+                description: 'Vertical marker anchor on a visible, unobstructed part of this object, percentage strictly between 12 and 88. Independent of boundingBox.',
               },
             },
             required: ['x', 'y'],
@@ -99,6 +110,7 @@ export const analysisResponseSchema = {
           'collocations',
           'emoji',
           'position',
+          'boundingBox',
         ],
       },
     },
@@ -112,7 +124,7 @@ export function makeRequest(input: RecognitionRequest) {
   for (let start = 0; start < input.bytes.length; start += 8192) binary += String.fromCharCode(...input.bytes.subarray(start, start + 8192));
   return {
     contents: [{ inlineData: { data: btoa(binary), mimeType: input.mimeType } }, { text:
-      `You are an ESL tutor. Analyze the photo for everyday objects. Return isRecognizable=false, a reason and photographyTips for blurry, dark or empty images. Otherwise identify 4 to ${input.maxItems} clear objects with accurate center coordinates (x:8-92%, y:12-88%), English words, IPA, part of speech, definitions, natural examples, collocations and emoji. All translations and descriptions must use ${input.language} Traditional Chinese (Taiwan). Do not invent objects.` }],
+      `You are an ESL tutor. Analyze the photo for everyday objects. Return isRecognizable=false, a reason and photographyTips for blurry, dark or empty images. Otherwise identify up to ${input.maxItems} clear objects; return fewer when only a few are visible. Include English words, IPA, part of speech, definitions, natural examples, collocations and emoji. For each object return boundingBox {left,top,right,bottom} in image percentages 0–100 covering the ENTIRE visible object. For scissors include both the tips and all handles, not just the blade or hinge. Do not add crop padding; the app adds it. For broad surfaces such as tables, walls or floors include the whole visible extent, using the full image bounds when appropriate. Separately return a position marker (x:8-92%, y:12-88%) on a visible, unobstructed part of that object; a table marker must be on the tabletop, not on scissors resting on it. All translations and descriptions must use ${input.language} Traditional Chinese (Taiwan). Do not invent objects.` }],
     schema: analysisResponseSchema,
   };
 }

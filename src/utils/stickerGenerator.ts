@@ -1,21 +1,34 @@
 import type { DetectedItem } from '../types';
 import { loadImage } from './loadImage';
+import type { BoundingBox } from '../domain/vocabulary';
+import { parseBoundingBox } from '../domain/validation';
 
-function crop(image: HTMLImageElement, position: { x: number; y: number }, ratio = .32): string {
+/** Fit the whole padded object into a square; unknown bounds retain the full scene. */
+function crop(image: HTMLImageElement, boundingBox?: BoundingBox): string {
   const width = image.naturalWidth;
   const height = image.naturalHeight;
-  const size = Math.min(Math.min(width, height), Math.max(120, Math.min(width, height) * ratio));
-  const x = Math.max(0, Math.min(width - size, Math.max(5, Math.min(95, position.x)) / 100 * width - size / 2));
-  const y = Math.max(0, Math.min(height - size, Math.max(5, Math.min(95, position.y)) / 100 * height - size / 2));
+  const box = parseBoundingBox(boundingBox) || { left: 0, top: 0, right: 100, bottom: 100 };
+  const padX = (box.right - box.left) * .1;
+  const padY = (box.bottom - box.top) * .1;
+  const x = Math.max(0, box.left - padX) / 100 * width;
+  const y = Math.max(0, box.top - padY) / 100 * height;
+  const cropWidth = Math.min(width, (box.right + padX) / 100 * width) - x;
+  const cropHeight = Math.min(height, (box.bottom + padY) / 100 * height) - y;
   const canvas = document.createElement('canvas'); canvas.width = 280; canvas.height = 280;
   const context = canvas.getContext('2d');
   if (!context) throw new Error('無法裁切照片');
-  context.drawImage(image, x, y, size, size, 0, 0, 280, 280);
+  context.fillStyle = '#fff9ef';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  const scale = Math.min(canvas.width / cropWidth, canvas.height / cropHeight);
+  const outputWidth = cropWidth * scale;
+  const outputHeight = cropHeight * scale;
+  context.drawImage(image, x, y, cropWidth, cropHeight,
+    (canvas.width - outputWidth) / 2, (canvas.height - outputHeight) / 2, outputWidth, outputHeight);
   return canvas.toDataURL('image/jpeg', .9);
 }
 
-export async function generateSticker(imageUrl: string, position: { x: number; y: number }, cropRatio = .32): Promise<string> {
-  try { return crop(await loadImage(imageUrl), position, cropRatio); }
+export async function generateSticker(imageUrl: string, boundingBox?: BoundingBox): Promise<string> {
+  try { return crop(await loadImage(imageUrl), boundingBox); }
   catch { return imageUrl; }
 }
 
@@ -27,7 +40,7 @@ export async function batchGenerateStickers(imageUrl: string, items: DetectedIte
     signal?.throwIfAborted();
     let stickerUrl = item.stickerUrl;
     if (!stickerUrl && image) {
-      try { stickerUrl = crop(image, item.position); } catch { stickerUrl = imageUrl; }
+      try { stickerUrl = crop(image, item.boundingBox); } catch { stickerUrl = imageUrl; }
     }
     return { ...item, stickerUrl, originalImageUrl: item.originalImageUrl || imageUrl };
   });

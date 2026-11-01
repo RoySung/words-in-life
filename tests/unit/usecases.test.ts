@@ -61,3 +61,16 @@ test('database conflicts after recognition never repeat the provider call', asyn
   await uc.completeMission({ items: result.scene.items, analysisId: result.scene.analysisId });
   assert.equal(calls, 1);
 });
+
+test('saved words retain object bounds and the shared crop for later review', async () => {
+  const repo = new InMemoryLibraryRepository();
+  const uc = createLibraryUsecases(repo, deps);
+  await uc.initialize(async () => ({ words: [], photos: [] }));
+  const boundingBox = { left: 40, top: 10, right: 60, bottom: 90 };
+  const crop = { kind: 'asset' as const, path: '/whole-scissors.jpg' };
+  await uc.saveWord({ ...item, boundingBox, crop, savedAt: 1 });
+  await uc.recordReview(item.id, true);
+  const saved = (await repo.read()).words[0];
+  assert.deepEqual(saved.boundingBox, boundingBox);
+  assert.deepEqual(saved.crop, crop);
+});

@@ -1,4 +1,6 @@
 import type { PhotoRef } from './photos';
+/** Edges in image percentages (0–100), independent of the label anchor. */
+export interface BoundingBox { left: number; top: number; right: number; bottom: number }
 export interface VocabularyItem {
   id: string;
   word: string;
@@ -10,6 +12,7 @@ export interface VocabularyItem {
   exampleZh: string;
   collocations: string[];
   emoji: string;
+  boundingBox?: BoundingBox;
   position: {
     x: number; // percentage (8 to 92)
     y: number; // percentage (12 to 88)
@@ -26,6 +29,7 @@ export interface Word {
   exampleZh: string;
   collocations: string[];
   emoji: string;
+  boundingBox?: BoundingBox;
   savedAt: number;
   sceneTitle?: string;
   position?: {

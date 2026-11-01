@@ -8,7 +8,8 @@ const baseURL = process.env.TEST_BASE_URL || 'http://127.0.0.1:4179';
     await page.addInitScript(() => localStorage.setItem('words-in-life-camera-enabled-v1', 'false'));
     let mode = 'success'; const calls = [];
     const payload = text => ({ candidates: [{ content: { parts: [{ text }] } }] });
-    const recognized = { isRecognizable: true, sceneTitle: '咖啡桌', items: [{ word: 'cup', chinese: '杯子', position: { x: .5, y: 80 } }] };
+    const boundingBox = { left: 30, top: 10, right: 70, bottom: 90 };
+    const recognized = { isRecognizable: true, sceneTitle: '咖啡桌', items: [{ word: 'cup', chinese: '杯子', position: { x: .5, y: 80 }, boundingBox }] };
     await page.route('https://generativelanguage.googleapis.com/**', async route => {
       const request = route.request();
       calls.push({ url: request.url(), key: request.headers()['x-goog-api-key'], body: request.postDataJSON() });
@@ -29,10 +30,14 @@ const baseURL = process.env.TEST_BASE_URL || 'http://127.0.0.1:4179';
     });
     const result = await page.evaluate(() => window.analyze());
     assert(result.success); assert.equal(result.data.items[0].id, 'word:cup');
+    assert.deepEqual(result.data.items[0].boundingBox, boundingBox);
     assert.equal(calls[0].key, 'fixture-key');
     assert.equal(calls[0].body.contents[0].parts[0].inlineData.data, 'AQID');
     assert.equal(calls[0].body.contents[0].parts[0].inlineData.mimeType, 'image/jpeg');
     assert.equal(calls[0].body.generationConfig.responseMimeType, 'application/json');
+    const itemSchema = calls[0].body.generationConfig.responseSchema.properties.items.items;
+    assert(itemSchema.required.includes('boundingBox'));
+    assert.deepEqual(itemSchema.properties.boundingBox.required, ['left', 'top', 'right', 'bottom']);
     await page.evaluate(() => { window.providerKey = 'updated-key'; });
     await page.evaluate(() => window.analyze()); assert.equal(calls.at(-1).key, 'updated-key');
     for (const [scenario, code, count] of [['unauthorized', 'Unauthorized', 1], ['rate', 'RateLimited', 1], ['input', 'InvalidInput', 1], ['outage', 'Unavailable', 2], ['invalid', 'InvalidResponse', 1]]) {

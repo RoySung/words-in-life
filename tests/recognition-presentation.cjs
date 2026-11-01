@@ -35,7 +35,7 @@ const baseURL = process.env.TEST_BASE_URL || 'http://127.0.0.1:4179';
       const { batchGenerateStickers } = await import('/src/utils/stickerGenerator.ts');
       const { SAMPLE_SCENES } = await import('/src/data/sampleScenes.ts');
       const scene = SAMPLE_SCENES[0];
-      const items = await batchGenerateStickers(scene.imageUrl, scene.items.slice(0, 3).map((item, i) => ({ ...item, position: [{ x: 50, y: 50 }, { x: 55, y: 52 }, { x: 92, y: 88 }][i] })));
+      const items = await batchGenerateStickers(scene.imageUrl, scene.items.slice(0, 3).map((item, i) => ({ ...item, boundingBox: [{ left: 35, top: 10, right: 65, bottom: 90 }, { left: 0, top: 30, right: 100, bottom: 60 }, { left: 80, top: 70, right: 100, bottom: 100 }][i], position: [{ x: 50, y: 50 }, { x: 55, y: 52 }, { x: 92, y: 88 }][i] })));
       const host = document.createElement('div');
       host.className = 'vs-theme words-in-life-app';
       document.getElementById('root').style.display = 'none';

@@ -35,6 +35,8 @@ import { Button, Polaroid, Tag } from './design-system/components';
 
 `StartupTransition` retains the loading screen while the real homepage mounts. After storage is ready, loading text and the print fade out; the small front rotates to its edge over 320ms while moving toward the measured homepage camera center. The actual homepage camera rotates in from the opposite edge over 400ms; its utility header fades in near the end. No video, controls or DOM trees are cloned. Home remains inert and hidden from assistive technology until the transition finishes, and returning from other screens does not replay it. Reduced motion uses a 120ms dissolve; resizing or enabling reduced motion during the turn completes it immediately. `tests/startup-transition.cjs` covers mobile/desktop, storage retry, interrupted turns, reduced motion and subsequent navigation.
 
+Object thumbnails use the model's full visible-object bounds in image percentages, with 10% padding on each side clipped to the source image. The crop is fitted proportionally into a paper-colored square. Missing or invalid bounds retain the full scene. Result rows, collection cards, word details and quiz photos use `object-fit: contain` so they never crop the generated thumbnail again. Label anchors remain independent of crop bounds; surface labels should point to an unobstructed area. Existing saved crops remain unchanged; newly recognized photos use this framing.
+
 ## Colors
 
 Values are design interpretations of the reference, not exact sampled source values.
