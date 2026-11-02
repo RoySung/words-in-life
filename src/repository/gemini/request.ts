@@ -72,16 +72,12 @@ export const analysisResponseSchema = {
             type: Type.STRING,
             description: 'Single best matching emoji symbol, e.g. ☕, 💻, 🪴, 🪑, 📱',
           },
-          boundingBox: {
-            type: Type.OBJECT,
-            description: 'Tight bounds of the visible subject named by this word, including all its extremities, in full-photo percentages 0–100 from the top-left. In an illustration, poster or photo, bound the depicted subject itself, not the enclosing artwork. For cactus held by a person, bound the cactus, not the person, apron, paper or background. Small subjects need small local boxes. For broad surfaces (table, wall, floor), bound the whole visible surface; use the full image only when that named surface extends across the scene.',
-            properties: {
-              left: { type: Type.NUMBER, description: 'Left edge percentage, 0–100' },
-              top: { type: Type.NUMBER, description: 'Top edge percentage, 0–100' },
-              right: { type: Type.NUMBER, description: 'Right edge percentage, greater than left, up to 100' },
-              bottom: { type: Type.NUMBER, description: 'Bottom edge percentage, greater than top, up to 100' },
-            },
-            required: ['left', 'top', 'right', 'bottom'],
+          box_2d: {
+            type: Type.ARRAY,
+            description: 'Tight bounds [ymin, xmin, ymax, xmax], normalized to 0–1000 relative to the full input photo. Include the entire visible subject named by this word. For a tennis racket, include the racket head and visible handle, not the sports bag, shoes or table. In an illustration, bound the depicted subject itself: a cactus held by a person needs its own small local box, not the person or artwork bounds. For broad surfaces (table, wall, floor), bound the whole visible surface.',
+            items: { type: Type.INTEGER, minimum: 0, maximum: 1000 },
+            minItems: '4',
+            maxItems: '4',
           },
           position: {
             type: Type.OBJECT,
@@ -92,7 +88,7 @@ export const analysisResponseSchema = {
               },
               y: {
                 type: Type.NUMBER,
-                description: 'Vertical marker anchor on a visible, unobstructed part of this object, percentage strictly between 12 and 88. Independent of boundingBox.',
+                description: 'Vertical marker anchor on a visible, unobstructed part of this object, percentage strictly between 12 and 88. Marker percentages are independent of the 0–1000 box_2d grid.',
               },
             },
             required: ['x', 'y'],
@@ -110,7 +106,7 @@ export const analysisResponseSchema = {
           'collocations',
           'emoji',
           'position',
-          'boundingBox',
+          'box_2d',
         ],
       },
     },
@@ -125,9 +121,9 @@ export function makeRequest(input: RecognitionRequest) {
   return {
     contents: [{ inlineData: { data: btoa(binary), mimeType: input.mimeType } }, { text:
       `You are an ESL tutor. Analyze the photo for everyday objects. Return isRecognizable=false, a reason and photographyTips for blurry, dark or empty images. Otherwise identify up to ${input.maxItems} clear objects; return fewer when only a few are visible. Include English words, IPA, part of speech, definitions, natural examples, collocations and emoji.
-For each word independently, return boundingBox {left,top,right,bottom}: a tight box around the visible subject named by that word, including all its extremities. Use image percentages 0–100 from the top-left in the same coordinate system as the full input photo, even for subjects inside artwork. The crop must make that word's subject easy to recognize at thumbnail size.
+For each word independently, return box_2d [ymin, xmin, ymax, xmax]: a tight box around the visible subject named by that word, including all its extremities. Use coordinates normalized to 0–1000 from the top-left in the same coordinate system as the full input photo, even for subjects inside artwork. The first and third coordinates are vertical (y); the second and fourth are horizontal (x). For example, a subject spanning x=32–54% and y=18–52% has box_2d [180, 320, 520, 540]. The crop must make that word's subject easy to recognize at thumbnail size.
 Objects depicted in an illustration, poster, painting or printed photo are valid subjects. Bound the depicted object itself, not the enclosing paper, frame, whole illustration or surrounding scene. For example, if a person in an illustration holds a small cactus, the cactus box must tightly enclose the visible cactus, excluding the person's body, apron and poster background. A cap box encloses only the cap; an apron box encloses only the apron. Do not reuse the whole person's or artwork's box for these different words. Small objects should have proportionally small, local boxes; do not enlarge them to scene size. Check every box against its word before returning it.
-Preserve the complete visible subject within that tight box: for scissors include both the tips and all handles, not just the blade or hinge. Do not add crop padding; the app adds it. For broad surfaces such as tables, walls or floors include the whole visible extent, using the full image bounds only when that named surface extends across the scene.
+Preserve the complete visible subject within that tight box: for scissors include both the tips and all handles, not just the blade or hinge. For a tennis racket resting against a sports bag, enclose one complete visible racket including its head and visible handle; exclude the bag, shoes and table from the bounds as far as the rectangular box permits. Each separate word needs its own subject bounds. Do not add crop padding; the app adds it. For broad surfaces such as tables, walls or floors include the whole visible extent, using the full image bounds only when that named surface extends across the scene.
 Separately return a position marker (x:8-92%, y:12-88%) on a visible, unobstructed part of that object; a table marker must be on the tabletop, not on scissors resting on it. All translations and descriptions must use ${input.language} Traditional Chinese (Taiwan). Do not invent objects.` }],
     schema: analysisResponseSchema,
   };

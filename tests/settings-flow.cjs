@@ -16,7 +16,7 @@ const assert = require('node:assert/strict');
     await page.route('https://generativelanguage.googleapis.com/**', async route => {
       requests++;
       assert.equal(route.request().headers()['x-goog-api-key'], 'test-user-key');
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({candidates:[{content:{parts:[{text:JSON.stringify(recognizable ? {isRecognizable:true,sceneTitle:'測試場景',items:[{id:'cup',word:'cup',chinese:'杯子',position:{x:0.5,y:50}}]} : {isRecognizable:false,unrecognizableReason:'測試辨識回應',items:[]})}]}}]}) });
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({candidates:[{content:{parts:[{text:JSON.stringify(recognizable ? {isRecognizable:true,sceneTitle:'測試場景',items:[{id:'cup',word:'cup',chinese:'杯子',position:{x:0.5,y:50},box_2d:[100,300,900,700]}]} : {isRecognizable:false,unrecognizableReason:'測試辨識回應',items:[]})}]}}]}) });
     });
     await page.goto(baseURL);
     await page.getByRole('button', { name: '尚未設定 API key，前往設定' }).waitFor();

@@ -98,6 +98,56 @@ const baseURL = process.env.TEST_BASE_URL || 'http://127.0.0.1:4179';
     assert.ok(smallSubject.blue / (280 * 280) < .15, `the person behind the cactus must occupy less than 15% of the crop: ${JSON.stringify(smallSubject)}`);
     assert.deepEqual(smallSubject.bounds, { left: 35, top: 44, right: 41, bottom: 50 });
     assert(smallSubject.sourcePreserved);
+    // Exercise the actual provider adapter, not a provider stub with pre-parsed bounds.
+    await page.route('https://generativelanguage.googleapis.com/**', route => route.fulfill({
+      status: 200, contentType: 'application/json', body: JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({
+        isRecognizable: true, items: [
+          { word: 'tennis racket', chinese: '網球拍', box_2d: [160, 300, 440, 534], position: { x: 42, y: 26 } },
+          { word: 'sports bag', chinese: '運動包', box_2d: [480, 200, 720, 800], position: { x: 50, y: 60 } },
+        ],
+      }) }] } }] }),
+    }));
+    const racket = await page.evaluate(async () => {
+      const { createGeminiRepository } = await import('/src/repository/gemini/geminiRepository.ts');
+      const { createRecognitionUsecases } = await import('/src/usecases/recognition.ts');
+      const { batchGenerateStickers } = await import('/src/utils/stickerGenerator.ts');
+      const canvas = document.createElement('canvas'); canvas.width = 600; canvas.height = 1000;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#d0b090'; ctx.fillRect(0, 0, 600, 1000);
+      ctx.strokeStyle = '#ff0000'; ctx.lineWidth = 12;
+      ctx.beginPath(); ctx.ellipse(250, 260, 64, 94, 0, 0, Math.PI * 2); ctx.stroke(); // Racket head
+      ctx.fillStyle = '#00ff00'; ctx.fillRect(240, 354, 20, 86); // Visible handle
+      ctx.fillStyle = '#0000ff'; ctx.fillRect(120, 480, 360, 240); // Sports bag
+      ctx.fillStyle = '#ffff00'; ctx.fillRect(180, 800, 240, 100); // Shoes
+      const source = canvas.toDataURL();
+      const uc = createRecognitionUsecases(createGeminiRepository(() => 'fixture-key', ['fixture-model']), {
+        compress: async () => {
+          const blob = await (await fetch(source)).blob();
+          return { bytes: new Uint8Array(await blob.arrayBuffer()), mimeType: blob.type };
+        }, crop: batchGenerateStickers,
+      }, { now: Date.now, createId: () => 'racket-bounds' });
+      const result = await uc.recognizePhoto(source, new AbortController().signal);
+      if (!result.success) throw new Error('Racket recognition fixture failed');
+      const [item, bag] = result.scene.items;
+      const image = new Image(); image.src = item.stickerUrl; await image.decode();
+      const out = document.createElement('canvas'); out.width = 280; out.height = 280;
+      const context = out.getContext('2d'); context.drawImage(image, 0, 0);
+      const pixels = context.getImageData(0, 0, 280, 280).data;
+      let head = 0, handle = 0, bagPixels = 0, shoes = 0;
+      for (let i = 0; i < pixels.length; i += 4) {
+        const [r, g, b] = pixels.slice(i, i + 3);
+        if (r > 180 && g < 80 && b < 80) head++;
+        if (r < 80 && g > 180 && b < 80) handle++;
+        if (r < 80 && g < 80 && b > 180) bagPixels++;
+        if (r > 180 && g > 180 && b < 80) shoes++;
+      }
+      return { head, handle, bagPixels, shoes, bounds: item.boundingBox, distinct: item.stickerUrl !== bag.stickerUrl };
+    });
+    assert.ok(racket.head > 1000 && racket.handle > 500, `racket thumbnail must preserve its head and visible handle: ${JSON.stringify(racket)}`);
+    assert.equal(racket.bagPixels, 0, 'racket crop must exclude the sports bag below it');
+    assert.equal(racket.shoes, 0, 'racket crop must exclude the shoes');
+    assert.deepEqual(racket.bounds, { left: 30, top: 16, right: 53.4, bottom: 44 });
+    assert(racket.distinct, 'different subjects must produce different thumbnails');
     fs.mkdirSync('test-results/object-crops', { recursive: true });
     for (const screen of ['scene', 'collection', 'detail', 'quiz']) {
       await page.goto(`${baseURL}/design-system/preview?screen=${screen}`, { waitUntil: 'domcontentloaded' });
@@ -111,6 +161,6 @@ const baseURL = process.env.TEST_BASE_URL || 'http://127.0.0.1:4179';
         await page.screenshot({ path: `test-results/object-crops/${screen}-${name}.png` });
       }
     }
-    console.log('Object bounds, small illustrated cactus focus, long-object endpoints, full-scene corners and missing/invalid-bound fallback passed.');
+    console.log('Object bounds, Gemini racket localization, small illustrated cactus focus, long-object endpoints, full-scene corners and legacy missing/invalid-bound fallback passed.');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

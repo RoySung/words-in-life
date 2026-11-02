@@ -9,12 +9,14 @@ const baseURL = process.env.TEST_BASE_URL || 'http://127.0.0.1:4179';
     let mode = 'success'; const calls = [];
     const payload = text => ({ candidates: [{ content: { parts: [{ text }] } }] });
     const boundingBox = { left: 30, top: 10, right: 70, bottom: 90 };
-    const recognized = { isRecognizable: true, sceneTitle: '咖啡桌', items: [{ word: 'cup', chinese: '杯子', position: { x: .5, y: 80 }, boundingBox }] };
+    const recognized = { isRecognizable: true, sceneTitle: '咖啡桌', items: [{ word: 'cup', chinese: '杯子', position: { x: .5, y: 80 }, box_2d: [100, 300, 900, 700] }] };
     await page.route('https://generativelanguage.googleapis.com/**', async route => {
       const request = route.request();
       calls.push({ url: request.url(), key: request.headers()['x-goog-api-key'], body: request.postDataJSON() });
       const status = mode === 'unauthorized' ? 403 : mode === 'rate' ? 429 : mode === 'input' ? 400 : mode === 'outage' ? 503 : mode === 'fallback' && request.url().includes('missing') ? 404 : 200;
-      const body = status !== 200 ? { error: { code: status, message: 'Fixture error' } } : payload(mode === 'invalid' ? '{bad json' : JSON.stringify(recognized));
+      const data = mode === 'missing-bounds' ? { ...recognized, items: recognized.items.map(({ box_2d, ...item }) => item) }
+        : mode === 'invalid-bounds' ? { ...recognized, items: recognized.items.map(item => ({ ...item, box_2d: [900, 300, 100, 700] })) } : recognized;
+      const body = status !== 200 ? { error: { code: status, message: 'Fixture error' } } : payload(mode === 'invalid' ? '{bad json' : JSON.stringify(data));
       if (mode === 'cancel') await new Promise(resolve => setTimeout(resolve, 400));
       try { await route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) }); } catch { /* request cancelled */ }
     });
@@ -36,20 +38,29 @@ const baseURL = process.env.TEST_BASE_URL || 'http://127.0.0.1:4179';
     assert.equal(calls[0].body.contents[0].parts[0].inlineData.mimeType, 'image/jpeg');
     assert.equal(calls[0].body.generationConfig.responseMimeType, 'application/json');
     const itemSchema = calls[0].body.generationConfig.responseSchema.properties.items.items;
-    assert(itemSchema.required.includes('boundingBox'));
-    assert.deepEqual(itemSchema.properties.boundingBox.required, ['left', 'top', 'right', 'bottom']);
+    assert(itemSchema.required.includes('box_2d'));
+    const boxSchema = itemSchema.properties.box_2d;
+    assert.equal(boxSchema.type, 'ARRAY');
+    assert.equal(Number(boxSchema.minItems), 4);
+    assert.equal(Number(boxSchema.maxItems), 4);
+    assert.equal(boxSchema.items.minimum, 0);
+    assert.equal(boxSchema.items.maximum, 1000);
+    assert.equal(itemSchema.properties.boundingBox, undefined);
     const prompt = calls[0].body.contents[0].parts.find(part => part.text)?.text;
-    for (const instructions of [prompt, itemSchema.properties.boundingBox.description]) {
+    for (const instructions of [prompt, boxSchema.description]) {
       assert.match(instructions, /tight/i, 'bounds should fit the word subject');
       assert.match(instructions, /illustration/i, 'depicted objects need their own bounds');
       assert.match(instructions, /cactus/i, 'the small cactus example must be explicit');
       assert.match(instructions, /person/i, 'a held object must not inherit the person bounds');
+      assert.match(instructions, /tennis racket/i);
+      assert.match(instructions, /ymin, xmin, ymax, xmax/);
+      assert.match(instructions, /0–1000/);
     }
     assert.match(prompt, /same coordinate system as the full input photo/i);
     assert.match(prompt, /each word independently/i);
     await page.evaluate(() => { window.providerKey = 'updated-key'; });
     await page.evaluate(() => window.analyze()); assert.equal(calls.at(-1).key, 'updated-key');
-    for (const [scenario, code, count] of [['unauthorized', 'Unauthorized', 1], ['rate', 'RateLimited', 1], ['input', 'InvalidInput', 1], ['outage', 'Unavailable', 2], ['invalid', 'InvalidResponse', 1]]) {
+    for (const [scenario, code, count] of [['unauthorized', 'Unauthorized', 1], ['rate', 'RateLimited', 1], ['input', 'InvalidInput', 1], ['outage', 'Unavailable', 2], ['invalid', 'InvalidResponse', 1], ['missing-bounds', 'InvalidResponse', 1], ['invalid-bounds', 'InvalidResponse', 1]]) {
       mode = scenario; const before = calls.length;
       assert.equal((await page.evaluate(() => window.analyze())).code, code);
       assert.equal(calls.length - before, count, `${scenario} must not multiply SDK and app retries`);
