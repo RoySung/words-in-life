@@ -59,6 +59,45 @@ const baseURL = process.env.TEST_BASE_URL || 'http://127.0.0.1:4179';
       if (i % 5 > 0) assert.ok(result.blue > 100, `scene/unknown bounds ${i} must preserve full-photo corners`);
     }
     assert.deepEqual(results[0].boundingBox, { left: 40, top: 10, right: 60, bottom: 90 }, 'provider bounds must survive recognition parsing');
+    const smallSubject = await page.evaluate(async () => {
+      const { parseRecognitionResponse } = await import('/src/domain/recognition.ts');
+      const { createRecognitionUsecases } = await import('/src/usecases/recognition.ts');
+      const { batchGenerateStickers } = await import('/src/utils/stickerGenerator.ts');
+      const canvas = document.createElement('canvas'); canvas.width = 600; canvas.height = 1000;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#805030'; ctx.fillRect(0, 0, 600, 1000); // Wall
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(60, 150, 480, 700); // Printed illustration
+      ctx.fillStyle = '#0000ff'; ctx.fillRect(240, 300, 120, 400); // Person
+      ctx.fillStyle = '#00ff00'; // Small cactus beside the person's hand
+      ctx.fillRect(222, 440, 12, 60);
+      ctx.fillRect(210, 450, 8, 25); ctx.fillRect(238, 445, 8, 30);
+      ctx.fillRect(210, 467, 36, 8);
+      const source = canvas.toDataURL();
+      const boundingBox = { left: 35, top: 44, right: 41, bottom: 50 };
+      const provider = { analyze: async () => parseRecognitionResponse({ isRecognizable: true, items: [
+        { word: 'cactus', chinese: '仙人掌', boundingBox, position: { x: 38, y: 47 } },
+      ] }) };
+      const uc = createRecognitionUsecases(provider, {
+        compress: async () => ({ bytes: new Uint8Array(), mimeType: 'image/png' }), crop: batchGenerateStickers,
+      }, { now: Date.now, createId: () => 'small-illustrated-cactus' });
+      const result = await uc.recognizePhoto(source, new AbortController().signal);
+      if (!result.success) throw new Error('Cactus recognition fixture failed');
+      const item = result.scene.items[0];
+      const image = new Image(); image.src = item.stickerUrl; await image.decode();
+      const out = document.createElement('canvas'); out.width = 280; out.height = 280;
+      const context = out.getContext('2d'); context.drawImage(image, 0, 0);
+      const pixels = context.getImageData(0, 0, 280, 280).data;
+      let green = 0, blue = 0;
+      for (let i = 0; i < pixels.length; i += 4) {
+        if (pixels[i] < 80 && pixels[i + 1] > 180 && pixels[i + 2] < 80) green++;
+        if (pixels[i] < 80 && pixels[i + 1] < 80 && pixels[i + 2] > 180) blue++;
+      }
+      return { green, blue, bounds: item.boundingBox, sourcePreserved: item.originalImageUrl === source };
+    });
+    assert.ok(smallSubject.green / (280 * 280) > .15, 'a tiny depicted cactus must become recognizable in the thumbnail');
+    assert.ok(smallSubject.blue / (280 * 280) < .15, `the person behind the cactus must occupy less than 15% of the crop: ${JSON.stringify(smallSubject)}`);
+    assert.deepEqual(smallSubject.bounds, { left: 35, top: 44, right: 41, bottom: 50 });
+    assert(smallSubject.sourcePreserved);
     fs.mkdirSync('test-results/object-crops', { recursive: true });
     for (const screen of ['scene', 'collection', 'detail', 'quiz']) {
       await page.goto(`${baseURL}/design-system/preview?screen=${screen}`, { waitUntil: 'domcontentloaded' });
@@ -72,6 +111,6 @@ const baseURL = process.env.TEST_BASE_URL || 'http://127.0.0.1:4179';
         await page.screenshot({ path: `test-results/object-crops/${screen}-${name}.png` });
       }
     }
-    console.log('Object bounds, long-object endpoints, full-scene corners and missing/invalid-bound fallback passed.');
+    console.log('Object bounds, small illustrated cactus focus, long-object endpoints, full-scene corners and missing/invalid-bound fallback passed.');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

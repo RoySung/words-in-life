@@ -38,6 +38,15 @@ const baseURL = process.env.TEST_BASE_URL || 'http://127.0.0.1:4179';
     const itemSchema = calls[0].body.generationConfig.responseSchema.properties.items.items;
     assert(itemSchema.required.includes('boundingBox'));
     assert.deepEqual(itemSchema.properties.boundingBox.required, ['left', 'top', 'right', 'bottom']);
+    const prompt = calls[0].body.contents[0].parts.find(part => part.text)?.text;
+    for (const instructions of [prompt, itemSchema.properties.boundingBox.description]) {
+      assert.match(instructions, /tight/i, 'bounds should fit the word subject');
+      assert.match(instructions, /illustration/i, 'depicted objects need their own bounds');
+      assert.match(instructions, /cactus/i, 'the small cactus example must be explicit');
+      assert.match(instructions, /person/i, 'a held object must not inherit the person bounds');
+    }
+    assert.match(prompt, /same coordinate system as the full input photo/i);
+    assert.match(prompt, /each word independently/i);
     await page.evaluate(() => { window.providerKey = 'updated-key'; });
     await page.evaluate(() => window.analyze()); assert.equal(calls.at(-1).key, 'updated-key');
     for (const [scenario, code, count] of [['unauthorized', 'Unauthorized', 1], ['rate', 'RateLimited', 1], ['input', 'InvalidInput', 1], ['outage', 'Unavailable', 2], ['invalid', 'InvalidResponse', 1]]) {
