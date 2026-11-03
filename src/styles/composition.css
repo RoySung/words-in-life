@@ -164,7 +164,7 @@
 .home-viewfinder video { width: 100%; height: 100%; object-fit: contain; display: block; transform-origin: center; }
 .mission-viewfinder-controls { position: absolute; top: 18px; left: 16px; right: 16px; display: flex; justify-content: center; align-items: center; gap: 4px; z-index: 3; }
 .mission-viewfinder-entry { min-height: 44px; max-width: 100%; padding: 8px 14px; display: inline-flex; gap: 10px; align-items: center; border-radius: 24px; background: var(--vs-overlay-bg); color: var(--vs-paper); font-size: 12px; }
-.mission-viewfinder-entry span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mission-viewfinder-entry > span:not(.mission-trophy-wrap) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mission-viewfinder-entry span:nth-child(2) { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .mission-viewfinder-entry svg { width: 16px; height: 16px; }
 .mission-viewfinder-controls .cancel-quest { color: var(--vs-paper); background: var(--vs-overlay-bg); }
@@ -311,3 +311,65 @@
 .words-in-life-app .home-page:has(.home-camera-status .vs-button) {
   min-height: calc(800px + env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px));
 }
+
+/* Text-led quests: equal choices, completed in any order. */
+.quest-title { display: flex; align-items: center; gap: 12px; }
+.quest-title svg { width: .85em; height: .85em; color: var(--vs-orange); }
+.quest-intro { margin: 0 0 20px; font-size: 17px; }
+.quest-progress { display: flex; align-items: center; gap: 12px; margin: 20px 0; font-size: 14px; }
+.quest-progress > span:last-child { margin-left: auto; font-variant-numeric: tabular-nums; }
+.quest-dots { display: flex; flex-wrap: wrap; gap: 10px; }
+.quest-dots i { width: 14px; height: 14px; border: 1px solid var(--vs-muted); border-radius: 50%; }
+.quest-dots .is-filled { background: var(--vs-success); border-color: var(--vs-success); }
+.quest-cheer { color: var(--vs-success); font-weight: 600; margin: 12px 0; }
+.quest-cards { display: grid; gap: 12px; }
+.quest-card { position: relative; border: 1px solid var(--vs-border); border-radius: 12px; background: var(--vs-paper); overflow: hidden; }
+.quest-card-action { display: block; width: 100%; padding: 20px; text-align: left; background: transparent; color: var(--vs-text); }
+.quest-card-action:disabled { opacity: 1; cursor: default; }
+.quest-card-action:focus-visible { outline-offset: -4px; }
+.quest-word { display: table; max-width: calc(100% - 52px); font-size: 32px; line-height: 1.25; overflow-wrap: anywhere; text-decoration: underline; text-decoration-color: var(--vs-orange); text-decoration-thickness: 3px; text-underline-offset: 7px; margin-bottom: 12px; }
+.quest-translation { display: block; font-size: 16px; }
+.quest-card-bottom { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 12px; }
+.quest-hint { font-size: 13px; line-height: 1.6; color: var(--vs-muted); overflow-wrap: anywhere; }
+.quest-card-cta { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; font-size: 13px; font-weight: 600; }
+.quest-card-cta svg { width: 16px; height: 16px; }
+.quest-speaker { position: absolute; top: 18px; right: 14px; }
+.quest-card.is-complete { background: color-mix(in srgb, var(--vs-success) 9%, var(--vs-paper)); border-color: color-mix(in srgb, var(--vs-success) 45%, var(--vs-paper)); }
+.quest-stamp { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; border: 2px solid currentColor; border-radius: 3px; padding: 3px 7px; color: var(--vs-success); font-size: 14px; font-weight: 600; transform: rotate(-7deg); }
+.quest-stamp svg { width: 16px; height: 16px; }
+.quest-finish { margin-top: 20px; line-height: 1.8; }
+.quest-notice { margin-top: 20px; color: var(--vs-muted); font-size: 12px; line-height: 1.7; }
+.quest-notice summary { cursor: pointer; padding: 8px 0; }
+@keyframes quest-stamp { from { transform: scale(1.15) rotate(-7deg); opacity: .3; } to { transform: scale(1) rotate(-7deg); opacity: 1; } }
+@media (prefers-reduced-motion: no-preference) { .quest-stamp { animation: quest-stamp 220ms ease-out; } }
+@media (max-width: 360px) { .quest-card-action { padding: 16px; } .quest-card-bottom { align-items: flex-start; flex-wrap: wrap; } }
+
+.quest-complete-action { display: flex; align-items: flex-end; flex-direction: column; gap: 10px; flex-shrink: 0; }
+
+.mission-viewfinder-entry.is-all-complete { background: transparent; color: var(--vs-paper); box-shadow: none; text-shadow: 0 1px 3px #30282099; }
+.mission-viewfinder-entry .mission-complete-trophy { color: var(--vs-orange); width: 20px; height: 20px; flex-shrink: 0; }
+.mission-viewfinder-entry.is-all-complete span { white-space: nowrap; }
+
+/* Keep the quest badge quiet inside the viewfinder, with a full touch target. */
+.mission-viewfinder-entry { position: relative; min-height: 34px; padding: 6px 11px; gap: 7px; font-size: 12px; }
+.mission-viewfinder-entry::before { content: ''; position: absolute; inset: -5px 0; }
+.mission-viewfinder-entry .mission-complete-trophy { width: 16px; height: 16px; }
+.mission-viewfinder-entry > svg:last-child { width: 13px; height: 13px; }
+
+.mission-viewfinder-entry > .mission-trophy-wrap { position: relative; display: inline-flex; flex-shrink: 0; overflow: visible; margin-inline: 3px; }
+.mission-viewfinder-entry.is-all-complete .mission-complete-trophy { color: #c58316; fill: #f8d878; }
+.mission-sparkle { position: absolute; width: 9px; height: 9px; background: #e7a323; clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); pointer-events: none; opacity: 0; }
+.mission-sparkle--one { top: -5px; right: -5px; }
+.mission-sparkle--two { bottom: -3px; left: -5px; width: 7px; height: 7px; }
+.mission-sparkle--three { top: 3px; right: -8px; width: 5px; height: 5px; }
+@keyframes quest-sparkle {
+  0%, 12%, 45%, 100% { opacity: 0; transform: scale(.2) rotate(-15deg); }
+  24% { opacity: 1; transform: scale(1.2) rotate(0); }
+  33% { opacity: 1; transform: scale(.85) rotate(12deg); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .mission-sparkle { animation: quest-sparkle 2.8s ease-in-out infinite; }
+  .mission-sparkle--two { animation-delay: .55s; }
+  .mission-sparkle--three { animation-delay: 1.1s; }
+}
+@media (prefers-reduced-motion: reduce) { .mission-sparkle--one { opacity: 1; } }

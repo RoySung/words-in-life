@@ -30,7 +30,7 @@ export function FavoritesView({ photoUrls, savedWords, onBack, onSelectItem, onR
         </button>
         <div className="collection-actions"><IconButton label={`播放 ${w.word} 發音`} onClick={() => speakEnglish(w.word)}><Volume2 /></IconButton><IconButton label={`查看 ${w.word} 原圖`} onClick={() => setSource(w)} disabled={!w.photo && !w.originalImageUrl && !w.imageUrl}><Image /></IconButton><IconButton label={`移除 ${w.word}`} onClick={() => onRemoveWord(w.id)}><Trash2 /></IconButton></div>
       </article>)}</div>}
-      {savedWords.length > 0 && <div className="review-link"><p>留一點時間，讓新單字變熟悉。</p><Button variant="secondary" onClick={onStartQuiz}><BookOpen />開始翻卡複習</Button></div>}
+      {savedWords.length > 0 && <div className="review-link"><p>留一點時間，讓新單字變熟悉。</p><Button variant="secondary" onClick={onStartQuiz}><BookOpen />開始選擇題複習</Button></div>}
     </main>
     {source && <PhotoSourceModal photo={source.photo} photoUrls={photoUrls} isOpen onClose={() => setSource(null)} originalImageUrl={source.originalImageUrl || source.imageUrl || ''} stickerUrl={source.stickerUrl} word={source.word} chinese={source.chinese} emoji={source.emoji} position={source.position} sceneTitle={source.sceneTitle} />}
   </div>;

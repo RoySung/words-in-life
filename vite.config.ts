@@ -17,6 +17,10 @@ export default defineConfig(() => {
       },
     },
     server: {
+      // Dual-stack binding avoids separate IPv4/IPv6 servers sharing localhost.
+      host: '::',
+      port: 3000,
+      strictPort: false,
       hmr: process.env.DISABLE_HMR !== 'true',
       // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: process.env.DISABLE_HMR === 'true' ? null : {},

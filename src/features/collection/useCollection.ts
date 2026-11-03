@@ -7,8 +7,9 @@ import { playSfx } from '../../utils/audio';
 
 export function useCollection(words: SavedWord[], store: LibraryStore, analysis: AnalysisResult | null) {
   const toggleSave = async (item: DetectedItem) => {
-    if (words.some(w => wordKey(w.word) === wordKey(item.word))) {
-      await store.run(() => store.services.library.removeWord(item.id)); return;
+    const savedWord = words.find(w => wordKey(w.word) === wordKey(item.word));
+    if (savedWord) {
+      await store.run(() => store.services.library.removeWord(savedWord.id)); return;
     }
     const result = await store.run(async () => {
       const source = item.originalImageUrl || analysis?.imageUrl;

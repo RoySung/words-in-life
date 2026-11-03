@@ -16,6 +16,7 @@ export interface DailyMission {
   reason?: string;
   isCompleted: boolean;
   completedAt?: number;
+  completedItem?: VocabularyItem;
   completedCrop?: PhotoRef;
   completedPhoto?: PhotoRef;
 }
@@ -105,7 +106,7 @@ export function completeMission(state: MissionState, items: VocabularyItem[], ph
   for (const mission of ordered) {
     const matchedItem = checkMissionMatch(mission, items);
     if (!matchedItem) continue;
-    const missions = current.missions.map(m => m.id === mission.id ? { ...m, isCompleted: true, completedAt: now.getTime(), completedPhoto: photo, completedCrop: crops[matchedItem.id] } : m);
+    const missions = current.missions.map(m => m.id === mission.id ? { ...m, isCompleted: true, completedAt: now.getTime(), completedItem: { id: matchedItem.id, word: matchedItem.word, chinese: matchedItem.chinese, phonetic: matchedItem.phonetic, partOfSpeech: matchedItem.partOfSpeech, definition: matchedItem.definition, exampleEn: matchedItem.exampleEn, exampleZh: matchedItem.exampleZh, collocations: matchedItem.collocations, emoji: matchedItem.emoji, position: matchedItem.position, boundingBox: matchedItem.boundingBox }, completedPhoto: photo, completedCrop: crops[matchedItem.id] } : m);
     const done = missions.every(m => m.isCompleted) && current.lastCompletedDate !== current.dateKey;
     const next = { ...current, missions,
       streak: done ? (current.lastCompletedDate === yesterday(current.dateKey) ? current.streak + 1 : 1) : current.streak,

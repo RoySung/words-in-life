@@ -95,7 +95,7 @@ function Application({ store }: { store: ReturnType<typeof useLibrary> }) {
     setMissedQuestTarget(!celebration && activeQuestTarget?.id.startsWith(getTodayDateKey()) ? activeQuestTarget : null);
   };
   const analyzeImage = (imageUrl: string, fromCamera = false) => {
-    if (!navigator.onLine) { setInputError('目前離線，照片辨識需要網路。你仍可開啟我的單字，查看收藏與翻卡複習。'); return; }
+    if (!navigator.onLine) { setInputError('目前離線，照片辨識需要網路。你仍可開啟我的單字，查看收藏與選擇題複習。'); return; }
     const key = readGeminiKey(); setGeminiKey(key);
     if (!key) {
       setSettingsNotice('請先設定 Gemini API key，再回到首頁選擇或拍攝照片。'); navigate('settings'); return;
@@ -149,7 +149,16 @@ function Application({ store }: { store: ReturnType<typeof useLibrary> }) {
           missionsLoading={missionsLoading}
           missionsNotice={missionsNotice}
           onStartQuest={handleStartQuest}
-          onViewMissionSticker={(mission) => setMissionPhotoViewer(mission)}
+          onViewMissionSticker={(mission) => {
+            const item = mission.completedItem;
+            setSelectedItem(item ? { ...item, photo: mission.completedPhoto, crop: mission.completedCrop, stickerUrl: mission.completedStickerUrl, originalImageUrl: mission.completedPhotoUrl } : {
+              id: mission.id, word: mission.targetWord, chinese: mission.targetChinese,
+              phonetic: mission.phonetic, partOfSpeech: mission.partOfSpeech, emoji: mission.emoji,
+              definition: '', exampleEn: '', exampleZh: '', collocations: [], position: { x: 50, y: 50 },
+              photo: mission.completedPhoto, crop: mission.completedCrop,
+              stickerUrl: mission.completedStickerUrl, originalImageUrl: mission.completedPhotoUrl,
+            });
+          }}
           streakCount={streakCount}
           onOpenFailureDemo={(demoInfo) => {
             recognition.showFailure(demoInfo);

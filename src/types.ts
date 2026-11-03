@@ -85,6 +85,7 @@ export interface DailyMission {
   reason?: string;
   isCompleted: boolean;
   completedAt?: number;
+  completedItem?: import('./domain/vocabulary').VocabularyItem;
   completedPhoto?: PhotoRef;
   completedCrop?: PhotoRef;
   completedStickerUrl?: string;

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Image, ArrowUpRight, Check, Info, Images, X, ChevronDown, CameraOff, Camera, RotateCcw, Settings } from 'lucide-react';
+import { Image, Search, Info, Images, X, ChevronDown, CameraOff, Camera, RotateCcw, Settings } from 'lucide-react';
+import { DailyMissionSection } from './DailyMissionSection';
 import { SAMPLE_SCENES } from '../data/sampleScenes';
 import { SampleScene, SavedWord, DailyMission, RecognitionFailureInfo } from '../types';
 import { Button, IconButton, ShutterButton, Tag } from '../design-system/components';
@@ -21,7 +22,7 @@ interface HomeViewProps {
 }
 function ExploreSheet({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   const ref = useDialog(onClose);
-  return <dialog ref={ref} className="explore-sheet" aria-label="今日任務與探索"><header className="page-header"><h1>今日尋寶</h1><IconButton label="關閉探索" onClick={onClose}><X /></IconButton></header>{children}</dialog>;
+  return <dialog ref={ref} className="explore-sheet" aria-label="今日任務與探索"><header className="page-header"><h1 className="quest-title"><Search aria-hidden="true" />今日尋寶</h1><IconButton label="關閉探索" onClick={onClose}><X /></IconButton></header>{children}</dialog>;
 }
 export function HomeView(props: HomeViewProps) {
   const [exploring, setExploring] = useState(false);
@@ -53,7 +54,7 @@ export function HomeView(props: HomeViewProps) {
         </div>
         <div className="home-viewfinder" aria-label="即時相機觀景窗" inert={!!props.printingImage}>
           <div ref={camera.previewRef} className="camera-preview"><div className="camera-preview-frame" style={camera.previewStyle}><video ref={camera.videoRef} autoPlay muted playsInline onLoadedData={camera.onReady} onResize={camera.onReady} style={{ transform: `scale(${camera.zoom})` }} aria-label="相機即時影像" /></div></div>
-          <div className="mission-viewfinder-controls"><button className="mission-viewfinder-entry" aria-haspopup="dialog" onClick={() => setExploring(true)}><span>{target ? `尋找：${target.targetChinese}` : '今日尋寶'}</span><span>{completed}/{props.dailyMissions.length}</span><ChevronDown /></button>{target && <IconButton className="cancel-quest" label="取消目前任務" onClick={props.onCancelQuest}><X /></IconButton>}</div>
+          <div className="mission-viewfinder-controls"><button className={`mission-viewfinder-entry${props.dailyMissions.length > 0 && completed === props.dailyMissions.length ? ' is-all-complete' : ''}`} aria-haspopup="dialog" onClick={() => setExploring(true)}>{props.dailyMissions.length > 0 && completed === props.dailyMissions.length && <span className="mission-trophy-wrap"><svg className="mission-complete-trophy" viewBox="0 0 24 24" role="img" aria-label="今日尋寶全部完成"><path d="M6 5H3v3a5 5 0 0 0 5 5M18 5h3v3a5 5 0 0 1-5 5" fill="none" stroke="#e8ad36" strokeWidth="2.5" strokeLinecap="round" /><path d="M6 3h12v5c0 4-2.5 7-6 7S6 12 6 8Z" fill="#f4c451" /><path d="M7.5 4.5h2v4c0 1.5.3 2.5.8 3.5-1.8-1-2.8-3-2.8-5Z" fill="#fff0b0" /><path d="M11 15h2v4h-2Z" fill="#e8ad36" /><path d="M8 19h8l1 3H7Z" fill="#e8ad36" /><path d="M9 19h6" stroke="#ffe69a" strokeLinecap="round" /></svg><span className="mission-sparkle mission-sparkle--one" aria-hidden="true" /><span className="mission-sparkle mission-sparkle--two" aria-hidden="true" /><span className="mission-sparkle mission-sparkle--three" aria-hidden="true" /></span>}<span>{target ? `尋找：${target.targetChinese}` : '今日尋寶'}</span><span>{completed}/{props.dailyMissions.length}</span><ChevronDown /></button>{target && <IconButton className="cancel-quest" label="取消目前任務" onClick={props.onCancelQuest}><X /></IconButton>}</div>
           <span className="viewfinder-corners" />
           {props.cameraEnabled && camera.status === 'ready' && <button className="viewfinder-zoom" type="button" aria-label={`目前 ${camera.zoom} 倍，切換至 ${camera.zoom === 1 ? 2 : 1} 倍`} aria-pressed={camera.zoom === 2} onClick={() => camera.setZoom(previous => previous === 1 ? 2 : 1)}><span>{camera.zoom}x</span></button>}
           {!props.cameraEnabled && <div className="home-camera-status" role="status"><CameraOff aria-hidden="true" /><p>鏡頭已暫時關閉<br />點選左上角開關即可繼續拍照</p></div>}
@@ -74,9 +75,9 @@ export function HomeView(props: HomeViewProps) {
         </div>}</div>
       </section>
       {exploring && <ExploreSheet onClose={() => setExploring(false)}>
-        <section className="home-section"><div className="section-heading"><h2>今天，發現身邊的英文</h2><span>{completed}/{props.dailyMissions.length} 已完成</span></div><p className="muted">連續探索 {props.streakCount} 天 · 選一個目標，回到鏡頭找找看。</p>{props.missionsNotice && <p className="mission-notice muted" role="status">{props.missionsNotice}</p>}<div className="mission-list" aria-busy={!!props.missionsLoading}>{props.dailyMissions.map(m => <button key={m.id} disabled={!!props.missionsLoading} onClick={() => { setExploring(false); if (m.isCompleted) props.onViewMissionSticker?.(m); else props.onStartQuest(m); }}><div><strong>{m.targetWord}{m.kind && <span className="mission-kind">{m.kind === 'review' ? '複習' : '新探索'}</span>}</strong><span>{m.targetChinese} · {m.hint}</span>{m.reason && <span className="mission-reason">{m.reason}</span>}</div>{m.isCompleted ? <Check aria-label="已完成" /> : <ArrowUpRight />}</button>)}</div></section>
+        <DailyMissionSection missions={props.dailyMissions} streakCount={props.streakCount} loading={props.missionsLoading} notice={props.missionsNotice} onViewSticker={props.onViewMissionSticker} onStartQuest={mission => { setExploring(false); props.onStartQuest(mission); }} />
         <section className="home-section"><div className="section-heading"><h2>換個角度，看見新單字</h2><Tag>範例體驗</Tag></div><Button variant="ghost" onClick={() => selectSample(SAMPLE_SCENES[0])}>體驗範例照片</Button><div className="sample-gallery">{SAMPLE_SCENES.map(scene => <button key={scene.id} onClick={() => selectSample(scene)}><img src={scene.thumbnail} alt={scene.name} loading="lazy" /><strong>{scene.name}</strong><span>{scene.items.length} 個單字</span></button>)}</div></section>
-        <details className="home-help"><summary><Info />關於拍照學英文</summary><p>拍下生活中的物品，查看英文、例句並練習發音。收藏的單字會儲存在這個瀏覽器，隨時能翻卡複習。</p><p>照片不夠清楚時，也可以試試以下辨識提示範例。</p><div className="action-group">{FAILURE_SCENARIO_DEMOS.map(d => <Button key={d.id} variant="secondary" onClick={() => props.onOpenFailureDemo?.(d.failureInfo)}>{d.name.split('/')[0]}</Button>)}</div></details>
+        <details className="home-help"><summary><Info />關於拍照學英文</summary><p>拍下生活中的物品，查看英文、例句並練習發音。收藏的單字會儲存在這個瀏覽器，隨時能選擇題複習。</p><p>照片不夠清楚時，也可以試試以下辨識提示範例。</p><div className="action-group">{FAILURE_SCENARIO_DEMOS.map(d => <Button key={d.id} variant="secondary" onClick={() => props.onOpenFailureDemo?.(d.failureInfo)}>{d.name.split('/')[0]}</Button>)}</div></details>
       </ExploreSheet>}
     </main>
   </div>;
