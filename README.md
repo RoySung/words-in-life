@@ -36,7 +36,7 @@ IndexedDB 名稱為 `words-in-life-storage`、API key 儲存鍵為 `words-in-lif
 | 每日尋寶 | 開啟任務時由 AI 安排三項新探索，優先避開已收藏單字；備援題庫不足時才允許已知單字。顯示分類、提示與選題理由，三項全部完成才計入連續完成天數。 |
 | 範例與設定 | 提供咖啡館、美食、街景與書桌四組範例；可儲存或清除 Gemini API key。發音使用瀏覽器內建語音合成。 |
 
-首頁下方左側可選取圖片，右側照片計數開啟收藏，觀景窗任務列開啟今日尋寶與範例。單字詳情的三點選單提供發音練習、片語與原圖等工具。
+首頁下方左側可選取圖片，右側照片計數開啟收藏，觀景窗任務列開啟今日尋寶與範例。單字詳情提供單字卡圖片分享、儲存圖片、複製單字與字典／翻譯連結；展開更多用法可練習正常或慢速發音及片語，也能查看原圖。
 
 ## 本機啟動
 
@@ -115,7 +115,7 @@ IndexedDB 資料庫 `words-in-life-storage` 將單字 metadata 與照片 Blob �
 | `npm test` | 執行 Node 測試，涵蓋純規則、usecases、共用 Repository 契約與依賴邊界，無須瀏覽器或 Gemini key。 |
 | `npm run build` | 建置正式版本至 `dist/`。 |
 | `npm run check` | 依序執行型別檢查、Node 測試與正式建置。 |
-| `npm run test:e2e` | 在 port 4179 啟動隔離 Vite 伺服器，執行九組瀏覽器測試。 |
+| `npm run test:e2e` | 在 port 4179 啟動隔離 Vite 伺服器，執行十八組瀏覽器測試。 |
 | `npm run preview` | 本機預覽正式建置。 |
 | `npm run clean` | 刪除 `dist/` 建置產物。 |
 

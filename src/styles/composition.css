@@ -85,25 +85,39 @@
 .scene-shutter-label { padding: 2px 10px; border-radius: var(--vs-radius-pill); background: var(--vs-coffee); color: var(--vs-paper); font-size: 12px; font-weight: 500; }
 .scene-page { scroll-padding-bottom: 24px; }
 .scene-page button { scroll-margin-block: 20px; }
-.word-detail-dialog { width: min(100%,430px); padding: 0 27px 20px; display: flex; flex-direction: column; }
-.word-detail-dialog .page-header { min-height: 86px; padding: 22px 0 14px; flex-shrink: 0; }
-.word-detail-dialog > main { min-height: 0; flex: 1; display: flex; padding: 12px 0 18px; }
-.word-detail-dialog .detail-polaroid { width: 100%; margin: 0; padding: 20px 20px 24px; transform: rotate(-3deg); display: flex; flex-direction: column; }
-.word-detail-dialog .detail-polaroid > :is(img, .photo-unavailable, .photo-loading) { min-height: 160px; height: auto; flex: 1; width: 100%; object-fit: contain; background: var(--vs-surface); aspect-ratio: auto; }
-.word-detail-dialog .detail-polaroid figcaption { padding: 16px 0 0; flex-shrink: 0; }
-.word-detail-dialog .detail-word { gap: 8px; }
-.word-detail-dialog .detail-word h1 { font: 600 32px/1.2 var(--vs-font-latin); }
-.word-detail-dialog .word-menu { margin-left: auto; }
-.word-detail-dialog .phonetic { font-size: 14px; }
-.word-detail-dialog .translation { font-size: 20px; margin: 6px 0 16px; }
-.word-detail-dialog .word-example { padding: 18px 0 6px; }
-.word-detail-dialog .word-example [lang=en] { font-size: 18px; line-height: 1.4; }
-.word-detail-dialog .word-example > p { font-size: 13px; }
-.word-detail-dialog .detail-pagination { flex-shrink: 0; height: 55px; padding: 0; }
-.word-detail-dialog .vs-icon-button[aria-pressed=true] { background: transparent; color: var(--vs-paper); }
-.word-detail-dialog.is-expanded > main { flex: none; }
-.word-detail-dialog.is-expanded .detail-polaroid > :is(img, .photo-unavailable, .photo-loading) { height: 300px; flex: none; }
-.word-detail-dialog.is-expanded .word-more { margin-top: 18px; }
+.word-detail-dialog { width: min(100%,430px); padding: 0 20px 0; display: flex; flex-direction: column; overflow: hidden; }
+.word-detail-dialog .page-header { min-height: 64px; padding: 10px 0; flex-shrink: 0; }
+.word-detail-dialog > main { min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 0; border-radius: 10px 10px 0 0; background: var(--vs-paper); color: var(--vs-text); }
+.word-detail-paper { padding-top: 24px; }
+.word-detail-dialog .detail-polaroid { width: min(72%, 220px); margin: 0 auto 20px; padding: 10px 10px 30px; background: #fffefa; transform: rotate(-3deg); }
+.word-detail-dialog .detail-polaroid > :is(img, .photo-unavailable, .photo-loading) { height: auto; min-height: 0; width: 100%; object-fit: contain; background: var(--vs-surface); aspect-ratio: 1; }
+.word-detail-content { padding: 0 24px 18px; }
+.word-detail-dialog .detail-word { gap: 8px; justify-content: space-between; }
+.word-detail-dialog .detail-word h1 { min-width: 0; font: 600 32px/1.2 var(--vs-font-latin); }
+.word-tools { display: flex; flex-shrink: 0; color: var(--vs-rust); }
+.word-copy-status { display: block; font-size: 12px; color: var(--vs-rust); }
+.word-copy-status:empty { display: none; }
+.word-detail-dialog .phonetic { font-size: 14px; margin-top: 4px; }
+.word-detail-dialog .translation { font-size: 20px; margin: 6px 0 12px; }
+.word-detail-dialog .word-example { margin-top: 18px; padding: 16px 0; border-top: 1px solid var(--vs-border); }
+.word-detail-dialog .word-example > div { gap: 8px; align-items: flex-start; }
+.word-detail-dialog .word-example [lang=en] { min-width: 0; font: 17px/1.6 var(--vs-font-body); overflow-wrap: anywhere; }
+.word-detail-dialog .word-example > p { font-size: 13px; margin-top: 6px; line-height: 1.6; }
+.word-detail-dialog .word-more { margin-top: 0; padding-top: 0; }
+.word-detail-dialog .word-more-toggle { width: 100%; justify-content: space-between; padding: 10px 0; color: var(--vs-text); font-size: 14px; }
+.word-more-toggle svg.is-open { transform: rotate(180deg); }
+.word-speed { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 12px 0; color: var(--vs-muted); font-size: 12px; }
+.word-speed .vs-button { font-size: 12px; padding: 8px 12px; }
+.word-speed .vs-button[aria-pressed=true] { background: var(--vs-sand); color: var(--vs-text); }
+.word-detail-dialog .word-dictionaries { margin-top: 16px; }
+.word-detail-dialog .word-dictionaries h3 { color: var(--vs-muted); font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+.word-detail-dialog .word-dictionaries > div { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 14px; }
+.word-detail-dialog .word-dictionaries a { display: flex; align-items: center; justify-content: space-between; gap: 5px; min-height: 44px; padding: 8px 0; border-bottom: 1px solid var(--vs-border); font-size: 13px; color: var(--vs-rust); text-decoration: none; overflow-wrap: anywhere; }
+.word-dictionaries a svg { flex-shrink: 0; }
+.word-detail-dialog .source-button { padding: 8px 0; color: var(--vs-muted); }
+.word-detail-dialog .detail-pagination { flex-shrink: 0; min-height: 56px; padding: 6px 12px; background: var(--vs-paper); color: var(--vs-muted); border-top: 1px solid var(--vs-border); border-radius: 0 0 10px 10px; font-size: 13px; }
+.word-detail-dialog .detail-pagination .vs-icon-button { border: 0; }
+.word-detail-dialog > .page-header .vs-icon-button[aria-pressed=true] { background: transparent; color: var(--vs-paper); }
 .developing-page { padding: 0 24px 30px; min-height: 100dvh; display: flex; flex-direction: column; background: #352f27 url('/design-system/paper-grain.png'); }
 .developing-page .page-header { min-height: 90px; }
 .developing-page .page-header > span { display: none; }
@@ -137,8 +151,8 @@
   .home-page .camera-body { grid-template-rows: 74px minmax(220px,1fr) auto auto; }
   .home-page .camera-top { height: 74px; }
   .word-detail-dialog .page-header { min-height: 64px; padding: 12px 0 8px; }
-  .word-detail-dialog .detail-polaroid { padding: 14px 14px 18px; }
-  .word-detail-dialog .detail-polaroid figcaption { padding-top: 10px; }
+  .word-detail-dialog .detail-polaroid { margin-bottom: 14px; }
+
   .word-detail-dialog .translation { margin-bottom: 10px; }
   .word-detail-dialog .word-example { padding-top: 10px; }
   .word-detail-dialog .detail-polaroid > :is(img, .photo-unavailable, .photo-loading) { min-height: 120px; }

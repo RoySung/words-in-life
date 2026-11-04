@@ -153,3 +153,9 @@ Scene result photos use their source aspect ratio at the available width, with n
 The six live catalog previews reuse `HomeView`, `SceneView`, `FavoritesView`, `WordDetailModal` and `FlashcardQuiz`, with the same explicit `app-base` → `app-composition` cascade as the application. Update those production views first; the catalog inherits their visual changes automatically. Keep fixture state and service simulation in `Preview.tsx`. The basic component examples illustrate primitives and are not replicas of the current screens.
 
 White instant-photo frames use #FFFDF9, 2px corners, a square image and a deeper caption margin. Camera material gradients, recessed hardware and print-slot geometry remain screen-specific styles rather than global palette tokens. Current collection navigation is a standalone centered orange camera button; home and results have no bottom navigation.
+
+### Word image sharing (0.0.5)
+
+Word details expose a share action that previews and exports the same 1080px-wide PNG, containing the photo, word, IPA, translation, part of speech and English example. A small existing Logo + Words in Life signature is the only footer branding. The dialog uses the shared coffee surface, paper, typography, orange primary action and sand secondary action. Saving and sharing do not show success messages; failures remain actionable. Unsupported file sharing falls back to download.
+
+Opening lifts the existing detail photo into the expanding paper over 520ms, then reveals the dialog controls. Closing returns the photo over 280ms. Temporary top-layer images and animations are removed on completion or interruption, and the original photo and trigger focus are restored. Reduced motion skips both transitions; missing source photos use the static presentation. `tests/word-share.cjs` covers export, download, sharing fallback/cancellation, visible origin motion, interruption cleanup and reduced motion.

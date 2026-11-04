@@ -207,7 +207,7 @@
         <p class="section-lead">拍攝、理解、收藏，再回來複習。主要功能串成一個學習循環。</p>
         <ul class="feature-list">
           <li><strong>拍照與辨識</strong><p>首頁開啟後置相機，也能選取圖片。實際照片透過 Gemini 取得場景、英文單字、中文、音標、例句與物件位置，再產生方形照片裁切。</p></li>
-          <li><strong>單字收藏</strong><p>從辨識結果收藏單字，以照片格狀或列表瀏覽。支援中英文搜尋、分類篩選、單字詳情、原圖與瀏覽器語音發音。</p></li>
+          <li><strong>單字收藏</strong><p>從辨識結果收藏單字，以照片格狀或列表瀏覽。支援中英文搜尋、分類篩選、單字詳情、原圖、單字卡圖片分享／儲存與瀏覽器語音發音。</p></li>
           <li><strong>翻卡複習</strong><p>先看物件照片回想單字，再翻面查看答案。每次回答記錄複習次數、記住次數、最近複習時間與記住比例。</p></li>
           <li><strong>每日尋寶</strong><p>開啟任務時，AI 參考生活常見物件、時節與單字簿，安排一項複習與兩項新探索；空收藏時產生三項新探索。當日結果固定保存，缺 key 或生成失敗時使用本機備援題庫。三項全數完成才計入連續完成天數。</p></li>
           <li><strong>範例與設定</strong><p>四組生活範例可直接體驗。設定頁讓使用者儲存或清除 Gemini API key；沒有 key 時仍可使用範例。</p></li>
@@ -312,7 +312,7 @@
           </details>
           <details><summary><code>src/components/</code><span class="folder-purpose">畫面與對話框</span></summary>
             <div class="file-entry"><code>HomeView.tsx / SceneView.tsx</code><p>首頁相機、照片列印，以及帶物件標記的場景辨識結果。</p></div>
-            <div class="file-entry"><code>FavoritesView.tsx / WordDetailModal.tsx</code><p>收藏格狀與列表、搜尋篩選、單字詳情、前後切換與更多用法。</p></div>
+            <div class="file-entry"><code>FavoritesView.tsx / WordDetailModal.tsx</code><p>收藏格狀與列表、搜尋篩選、單字詳情、前後切換、字典連結、更多用法與單字卡圖片分享。</p></div>
             <div class="file-entry"><code>FlashcardQuiz.tsx / DailyMissionSection.tsx / MissionSuccessModal.tsx</code><p>照片翻卡、每日尋寶清單與任務完成回饋。</p></div>
             <div class="file-entry"><code>SettingsView.tsx / RecognitionFailureView.tsx / AppErrorBoundary.tsx</code><p>Gemini key 設定、辨識重試與應用程式錯誤恢復。</p></div>
             <div class="file-entry"><code>PhotoSourceModal.tsx / CameraModal.tsx / AnalyzingView.tsx / Mascot.tsx</code><p>原始照片檢視與輔助元件。CameraModal、AnalyzingView 保留在程式中，現行主流程使用 HomeView。</p></div>

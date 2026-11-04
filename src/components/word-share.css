@@ -1,0 +1,40 @@
+.word-share-dialog {
+  margin: auto;
+  width: min(430px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  padding: 16px 20px 20px;
+  border: 0;
+  border-radius: var(--vs-radius-md);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  color: var(--vs-paper);
+  background: var(--vs-coffee) url('/design-system/paper-grain.png');
+  font-family: var(--vs-font-body);
+}
+.word-share-dialog::backdrop { background: #302820a0; }
+.word-share-dialog > header { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 44px; }
+.word-share-dialog h2 { margin: 0; font-size: 20px; font-weight: 600; line-height: 1.4; }
+.word-share-hint { margin: 4px 0 20px; font-size: 13px; color: var(--vs-paper); }
+.word-share-preview { display: block; width: 100%; height: auto; border-radius: 2px; box-shadow: var(--vs-shadow-paper); }
+.word-share-source { width: 1px; height: 1px; overflow: hidden; position: absolute; opacity: 0; pointer-events: none; }
+.word-share-source img { width: 1px; height: 1px; }
+.word-share-error { margin: 16px 0 0; padding: 12px; background: var(--vs-paper); color: var(--vs-error); border-radius: var(--vs-radius-sm); font-size: 13px; }
+.word-share-dialog > footer { display: flex; gap: 12px; padding-top: 20px; }
+.word-share-dialog > footer > button { flex: 1; min-width: 0; padding-inline: 10px; font-size: 14px; }
+/* Keep the original photo visible until the export is ready to take over. */
+.word-share-dialog.is-preparing { opacity: 0; }
+.word-share-dialog.is-preparing::backdrop { background: transparent; }
+.word-share-dialog.is-morphing { overflow: visible; background-image: none; animation: word-share-surface 520ms both; }
+.word-share-dialog.is-morphing::backdrop { animation: word-share-backdrop 520ms both; }
+.word-share-flight-paper, .word-share-flight-photo { position: fixed; pointer-events: none; margin: 0; max-width: none; max-height: none; }
+.word-share-flight-paper { z-index: 1; background: var(--vs-paper); box-shadow: var(--vs-shadow-paper); }
+.word-share-flight-photo { z-index: 2; object-fit: cover; padding: 0; visibility: visible; }
+@keyframes word-share-surface { 0%, 65% { background-color: transparent; } 100% { background-color: var(--vs-coffee); } }
+@keyframes word-share-backdrop { from { background: transparent; } to { background: #302820a0; } }
+@media (prefers-reduced-motion: reduce) {
+  .word-share-dialog.is-morphing, .word-share-dialog.is-morphing::backdrop { animation: none; }
+}
+.word-share-dialog.is-returning { overflow: visible; background-image: none; animation: word-share-surface-return 280ms both; }
+.word-share-dialog.is-returning::backdrop { animation: word-share-backdrop-return 280ms both; }
+@keyframes word-share-surface-return { from { background-color: var(--vs-coffee); } to { background-color: transparent; } }
+@keyframes word-share-backdrop-return { from { background: #302820a0; } to { background: transparent; } }
