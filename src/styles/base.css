@@ -71,8 +71,9 @@
 .word-gallery--list .collection-open :is(img, .photo-unavailable, .photo-loading), .word-gallery--list .photo-placeholder { width: 64px; height: 72px; }
 .word-gallery--list .collection-actions { border: 0; margin: 0; }
 .word-gallery--list .collection-actions .vs-icon-button { width: 40px; }
-.review-link { text-align: center; margin: 32px 0; }
-.review-link p { font-size: 12px; color: var(--vs-muted); margin-bottom: 12px; }
+.collection-page .review-link { margin: 0 0 16px; }
+.collection-page .review-link .vs-button { width: 100%; min-height: 50px; }
+.collection-page .review-link + .category-strip { padding-top: 0; }
 .empty-state { padding: 56px 10px; text-align: center; }
 .empty-state > svg { margin: 0 auto 20px; width: 32px; height: 32px; }
 .empty-state h2 { font-size: 20px; font-weight: 650; }

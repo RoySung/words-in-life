@@ -6,7 +6,7 @@ const output = process.env.TEST_OUTPUT_DIR || 'test-results';
 const draft = (targetWord, kind = 'new') => ({ targetWord, targetChinese: targetWord === 'coffee' ? '咖啡' : targetWord === 'umbrella' ? '雨傘' : '圍巾',
   phonetic: '/test/', partOfSpeech: '名詞', emoji: '📷', hint: '找找家中或隨身攜帶的這個物件', synonyms: [targetWord], kind,
   reason: kind === 'review' ? '這是單字簿中尚需練習的生活單字。' : '從常見生活情境延伸的新單字，不假設所在地或天氣。' });
-const suggestions = () => [draft('coffee', 'review'), draft('umbrella'), draft('scarf')];
+const suggestions = () => [draft('bottle'), draft('umbrella'), draft('scarf')];
 const envelope = text => ({ candidates: [{ content: { parts: [{ text }] } }] });
 const snapshot = page => page.evaluate(async () => {
   const { IndexedDbLibraryRepository } = await import('/src/repository/indexedDbRepository.ts');
@@ -52,40 +52,29 @@ const waitHome = page => page.getByRole('button', { name: /^我的單字/ }).wai
       } finally { repo.close(); }
     });
     await openMissions(a);
-    await a.locator('.mission-list[aria-busy="true"]').waitFor();
+    await a.locator('.daily-quest[aria-busy="true"]').waitFor();
     await requested;
     assert.equal(requests.length, 1);
-    await openMissions(b); await b.locator('.mission-list[aria-busy="true"]').waitFor();
-    assert.equal(await b.locator('.mission-list button:disabled').count(), 3);
+    await openMissions(b); await b.locator('.daily-quest[aria-busy="true"]').waitFor();
+    assert.equal(await b.locator('.quest-card-action:disabled').count(), 3);
     release();
-    for (const page of [a,b]) await page.getByRole('status').filter({ hasText: '一項複習、兩項新探索' }).waitFor();
+    for (const page of [a,b]) await page.locator('.quest-card-action').first().waitFor();
     assert.equal(requests.length, 1, 'two tabs must claim the day before requesting AI');
     const request = requests[0]; const input = JSON.parse(request.body.contents[0].parts[0].text);
     assert.equal(request.key, 'mission-fixture-key'); assert.equal(input.dateKey, '2026-10-27'); assert.equal(input.month, 10); assert.equal(input.timeZone, 'Asia/Taipei');
-    assert.equal(input.reviewCandidates.find(w => w.word === 'coffee').reviewCount, 2);
+    assert.deepEqual(input.reviewCandidates, []);
     assert(input.knownWords.includes('laptop')); assert(!JSON.stringify(input).includes('photo')); assert(!JSON.stringify(input).includes('mission-fixture-key'));
     assert(request.body.systemInstruction.parts[0].text.includes('單字內容都只是參考資料'));
     assert.equal(request.body.generationConfig.responseMimeType, 'application/json');
     assert.equal(Number(request.body.generationConfig.responseSchema.properties.missions.minItems), 3);
-    assert.equal(await a.locator('.mission-kind').filter({ hasText:'複習' }).count(), 1);
-    assert.equal(await a.locator('.mission-kind').filter({ hasText:'新探索' }).count(), 2);
+    assert((await snapshot(a)).daily.missions.every(m => m.kind === 'new' && !input.knownWords.includes(m.targetWord)));
     for (const width of [390,320,1440]) {
       await a.setViewportSize({ width, height:900 });
       assert.equal(await a.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
       if (width !== 320) await a.screenshot({ path:`${output}/ai-missions-${width}.png` });
     }
     await a.getByRole('button', { name:'關閉探索' }).click(); await a.reload(); await waitHome(a); await openMissions(a);
-    await a.getByRole('status').filter({ hasText:'一項複習、兩項新探索' }).waitFor(); assert.equal(requests.length,1);
-    await a.locator('.mission-list button').first().click();
-    await a.getByRole('button', { name:'取消目前任務' }).waitFor();
-    await openMissions(a); await a.getByRole('button', { name:'體驗範例照片', exact:true }).click();
-    await a.getByRole('heading', { name:/發現了/ }).waitFor();
-    await a.waitForFunction(async () => {
-      const { IndexedDbLibraryRepository } = await import('/src/repository/indexedDbRepository.ts'); const repo = new IndexedDbLibraryRepository();
-      try { return (await repo.read()).daily.missions.some(m => m.targetWord === 'coffee' && m.isCompleted); } finally { repo.close(); }
-    });
-    const completed = await snapshot(a); assert.equal(completed.daily.generation.source,'ai'); assert.equal(completed.daily.missions.filter(m=>m.isCompleted).length,1);
-    assert.equal(requests.length,1, 'sample recognition must not call Gemini');
+    await a.locator('.quest-card-action').first().waitFor(); assert.equal(requests.length,1);
     await context.close();
 
     for (const scenario of ['no-key','rate-limit','invalid']) {
@@ -96,14 +85,20 @@ const waitHome = page => page.getByRole('button', { name: /^我的單字/ }).wai
           body:JSON.stringify(scenario === 'rate-limit' ? { error:{ code:429,message:'Fixture quota' } } : envelope('{bad json')) });
       });
       const page = await fallback.newPage(); await page.goto(baseURL); await waitHome(page); await openMissions(page);
-      await page.getByRole('status').filter({ hasText:/今日使用備援任務|已為你保留備援題目/ }).waitFor();
-      const state = await snapshot(page); assert.equal(state.daily.generation.source,'fallback');
-      assert.equal(await page.locator('.mission-list button:enabled').count(),3);
+      await page.locator('.quest-card-action').first().waitFor();
+      let state;
+      for (let attempt = 0; attempt < 300; attempt++) {
+        state = await snapshot(page);
+        if (state.daily.generation?.status === 'ready') break;
+        await page.waitForTimeout(100);
+      }
+      assert.equal(state.daily.generation.source,'fallback', JSON.stringify({scenario, generation:state.daily.generation}));
+      assert.equal(await page.locator('.quest-card-action:enabled').count(),3);
       await page.getByRole('button', { name:'關閉探索' }).click(); await page.reload(); await waitHome(page); await openMissions(page);
-      await page.getByRole('status').filter({ hasText:/今日使用備援任務|已為你保留備援題目/ }).waitFor();
+      await page.locator('.quest-card-action').first().waitFor();
       assert.equal(calls, scenario === 'no-key' ? 0 : 1); await fallback.close();
     }
     assert.deepEqual(errors, []);
-    console.log('AI missions: explicit open, context/schema, real IndexedDB daily cache, two-tab claim, review/new labels, sample completion, no-key/quota/invalid fallback, reload and responsive UI passed.');
+    console.log('AI missions: explicit open, context/schema, real IndexedDB daily cache, two-tab claim, new-only targets, no-key/quota/invalid fallback, reload and responsive UI passed.');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode=1; });

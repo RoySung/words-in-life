@@ -30,7 +30,7 @@ export function getTodayDateKey(d = new Date()): string {
 }
 
 // Generate 3 deterministic daily missions for a given date
-export function generateDailyMissionsForDate(dateKey: string): DailyMission[] {
+export function generateDailyMissionsForDate(dateKey: string, knownWords: string[] = []): DailyMission[] {
   // Simple deterministic hash based on date string
   let hash = 0;
   for (let i = 0; i < dateKey.length; i++) {
@@ -56,10 +56,15 @@ export function generateDailyMissionsForDate(dateKey: string): DailyMission[] {
     selectedIdxs.push(next);
   }
 
-  return selectedIdxs.map((poolIdx, i) => {
+  const known = new Set(knownWords.map(wordKey));
+  const order = [...selectedIdxs, ...Array.from({ length: poolLen }, (_, i) => (idx1 + i) % poolLen).filter(i => !selectedIdxs.includes(i))];
+  const fresh = order.filter(i => ![MISSION_POOL[i].targetWord, ...MISSION_POOL[i].synonyms].some(name => known.has(wordKey(name))));
+  const selected = [...fresh, ...order.filter(i => !fresh.includes(i))].slice(0, 3);
+  return selected.map((poolIdx, i) => {
     const item = MISSION_POOL[poolIdx];
     return {
       ...item,
+      kind: 'new' as const,
       id: `${dateKey}_m${i}_${item.targetWord}`,
       isCompleted: false,
     };

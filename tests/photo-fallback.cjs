@@ -71,7 +71,7 @@ const baseURL = process.env.TEST_BASE_URL || 'http://127.0.0.1:4179';
     }
     for (const surface of ['collection', 'quiz']) {
       await page.evaluate(surface => window.renderPhotoCase('stored-missing', surface), surface);
-      const image = fixture.locator(surface === 'collection' ? '.collection-open img' : '.quiz-face--front img');
+      const image = fixture.locator(surface === 'collection' ? '.collection-open img' : '.quiz-question img');
       await image.waitFor();
       await image.evaluate(img => img.decode());
       assert.deepEqual(await page.evaluate(() => window.photoReads), ['missing', 'original']);

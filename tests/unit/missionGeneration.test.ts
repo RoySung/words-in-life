@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createMissionContext, generatedMissions, parseMissionDrafts, type MissionContext, type MissionDraft } from '../../src/domain/missionGeneration';
-import { checkMissionMatch, freshMissions } from '../../src/domain/missions';
+import { checkMissionMatch, freshMissions, generateDailyMissionsForDate } from '../../src/domain/missions';
 import { parseItem } from '../../src/domain/validation';
 import { validateDaily } from '../../src/repository/records';
 import { AppError } from '../../src/repository/LibraryRepository';
@@ -12,7 +12,7 @@ import { InMemoryLibraryRepository } from '../helpers/InMemoryLibraryRepository'
 const word = (name: string) => ({ ...parseItem({ word: name, chinese: '物件' })!, savedAt: 1 });
 const draft = (targetWord: string, kind: MissionDraft['kind'] = 'new'): MissionDraft => ({ targetWord, targetChinese: '物件',
   phonetic: '/test/', partOfSpeech: '名詞', emoji: '📷', hint: '在生活中找找這個物件', synonyms: [targetWord], kind, reason: '常見的生活物件' });
-const suggestions = () => [draft('cup', 'review'), draft('umbrella'), draft('scarf')];
+const suggestions = () => [draft('bottle'), draft('umbrella'), draft('scarf')];
 function deferred<T>() {
   let resolve!: (value: T) => void;
   const promise = new Promise<T>(done => { resolve = done; });
@@ -25,19 +25,19 @@ function setup(timeoutMs = 25000) {
   repo.state = { revision: 0, initialized: true, words: [word('cup')], daily: freshMissions('2026-10-27') };
   return { repo, deps, library: createLibraryUsecases(repo, deps), setNow(value: string) { now = new Date(value).getTime(); } };
 }
-test('mission context prioritizes weak/unreviewed words and excludes images, credentials and unrelated fields', () => {
+test('mission context sends known words without review candidates and excludes images, credentials and unrelated fields', () => {
   const words = [
     { ...word('book'), reviewCount: 10, rememberedCount: 10, masteryScore: 100, lastReviewedAt: 10, photo: { kind: 'asset' as const, path: '/private.jpg' } },
     { ...word('cup'), reviewCount: 5, rememberedCount: 1, masteryScore: 20, lastReviewedAt: 2 }, word('plant'),
   ];
   const context = createMissionContext(words, '2026-10-27', 'Asia/Taipei');
-  assert.deepEqual(context.reviewCandidates.map(w => w.word), ['plant', 'cup', 'book']);
+  assert.deepEqual(context.reviewCandidates, []);
   assert.equal(context.month, 10); assert.equal(context.timeZone, 'Asia/Taipei');
   assert(!JSON.stringify(context).includes('/private.jpg')); assert(!JSON.stringify(context).includes('exampleEn'));
   const many = createMissionContext(Array.from({ length: 1000 }, (_, i) => word(`object ${i}`)), context.dateKey, context.timeZone);
-  assert.equal(many.knownWords.length, 500); assert.equal(many.reviewCandidates.length, 30);
+  assert.equal(many.knownWords.length, 500); assert.equal(many.reviewCandidates.length, 0);
 });
-test('generated missions require exactly three distinct objects, reasons, one real review and two unknown words', () => {
+test('generated missions require exactly three distinct objects, reasons, three unknown words and no review', () => {
   const known = [word('cup')]; const context = createMissionContext(known, '2026-10-27', 'Asia/Taipei');
   const valid = generatedMissions(suggestions(), context.dateKey, known, context)!;
   assert.equal(valid.length, 3); assert(valid.every(m => m.id.startsWith('2026-10-27_ai') && !m.isCompleted));
@@ -58,9 +58,9 @@ test('AI result is persisted once per day; conflict retries and reloads do not r
   const first = await usecases.ensure();
   assert.equal(first.daily.generation?.status, 'ready');
   assert.equal(first.daily.generation?.status === 'ready' && first.daily.generation.source, 'ai');
-  assert.equal(input?.reviewCandidates[0].word, 'cup');
+  assert.equal(input?.knownWords[0], 'cup');
   await usecases.ensure(); await createMissionGenerationUsecases(repo, provider, deps).ensure();
-  assert.equal(calls, 1); assert.equal(repo.state.daily.missions[0].targetWord, 'cup');
+  assert.equal(calls, 1); assert.equal(repo.state.daily.missions[0].targetWord, 'bottle');
 });
 test('simultaneous calls and two services share a durable claim before calling AI', async () => {
   const { repo, deps } = setup(); const waiting = deferred<MissionDraft[]>(); const started = deferred<void>(); let calls = 0;
@@ -80,7 +80,7 @@ test('no key, provider errors and malformed output settle once to stable fallbac
       throw new AppError(outcome);
     } }, deps);
     await usecases.ensure(); await usecases.ensure();
-    assert.equal(calls, 1); assert.deepEqual(repo.state.daily.missions, before);
+    assert.equal(calls, 1); assert(repo.state.daily.missions.every(m => m.kind === 'new' && m.targetWord !== 'cup'));
     const state = repo.state.daily.generation;
     assert(state?.status === 'ready' && state.source === 'fallback');
     assert.equal(state.fallbackReason, outcome === 'MissingCredential' ? 'missing-key' : 'generation-failed');
@@ -145,4 +145,19 @@ test('generation metadata is validated while old records remain readable', () =>
   for (const generation of [{ status: 'generating', requestId: 'id', startedAt: NaN }, { status: 'ready', source: 'other', generatedAt: 1 }, { status: 'ready', source: 'ai', generatedAt: -1 }]) {
     assert.throws(() => validateDaily({ ...daily, generation }), (cause: AppError) => cause.code === 'InvalidData');
   }
+});
+
+test('fallback prefers unknown targets and aliases and fills three when the pool is exhausted', () => {
+  const initial = generateDailyMissionsForDate('2026-11-04');
+  const known = initial.flatMap(m => [m.targetWord, ...m.synonyms]);
+  const fresh = generateDailyMissionsForDate('2026-11-04', known);
+  assert.equal(fresh.length, 3);
+  assert(fresh.every(m => !known.includes(m.targetWord)));
+  assert.deepEqual(fresh, generateDailyMissionsForDate('2026-11-04', known));
+  assert.equal(generateDailyMissionsForDate('2026-11-04', known.concat(fresh.flatMap(m => [m.targetWord, ...m.synonyms]))).length, 3);
+});
+test('AI rejects known aliases even outside the bounded context', () => {
+  const drafts = suggestions(); drafts[0].synonyms = ['cup'];
+  const words = [word('cup')];
+  assert.equal(generatedMissions(drafts, '2026-11-04', words, createMissionContext([], '2026-11-04', 'UTC')), null);
 });

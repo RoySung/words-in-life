@@ -151,7 +151,7 @@ const baseURL = process.env.TEST_BASE_URL || 'http://127.0.0.1:4179';
     fs.mkdirSync('test-results/object-crops', { recursive: true });
     for (const screen of ['scene', 'collection', 'detail', 'quiz']) {
       await page.goto(`${baseURL}/design-system/preview?screen=${screen}`, { waitUntil: 'domcontentloaded' });
-      const selector = { scene: '.discovery-open img', collection: '.collection-open img', detail: '.detail-polaroid > img', quiz: '.quiz-card-turn .quiz-face--front > img' }[screen];
+      const selector = { scene: '.discovery-open img', collection: '.collection-open img', detail: '.detail-polaroid > img', quiz: '.quiz-question > img' }[screen];
       const photo = page.locator(selector).first();
       await photo.waitFor();
       await photo.evaluate(img => img.decode());

@@ -34,13 +34,15 @@ const home = page => page.getByRole('button', { name: /^我的單字/ }).waitFor
     await existing.evaluate(() => { window.failWrites = false; });
     await existing.getByRole('button', { name: '移除 coffee', exact: true }).click();
     await existing.waitForFunction(() => document.querySelectorAll('.collection-card').length === 3);
-    await existing.getByRole('button', { name: '開始翻卡複習' }).click();
-    await existing.getByRole('button', { name: '記住了', exact: true }).click();
+    await existing.getByRole('button', { name: '開始選擇題複習' }).click();
+    await existing.locator('.quiz-options button').first().click();
+    const reviewedWord = await existing.locator('.quiz-feedback h2').textContent();
+    await existing.getByRole('button', { name: '下一題', exact: true }).click();
     await existing.waitForFunction(() => document.querySelector('.quiz-dialog .page-header > span')?.textContent === '2 / 3');
-    assert.equal((await snapshot(existing)).state.words.find(w => w.word === 'laptop').reviewCount, 1);
+    assert.equal((await snapshot(existing)).state.words.find(w => w.word === reviewedWord).reviewCount, 1);
     await existing.reload(); await home(existing);
     assert.equal((await snapshot(existing)).state.words.length, 3);
-    assert.equal((await snapshot(existing)).state.words.find(w => w.word === 'laptop').reviewCount, 1);
+    assert.equal((await snapshot(existing)).state.words.find(w => w.word === reviewedWord).reviewCount, 1);
     await existing.close();
     console.log('UI write failure rollback, retry and review persistence passed.');
 
@@ -74,7 +76,7 @@ const home = page => page.getByRole('button', { name: /^我的單字/ }).waitFor
     await midnight.goto(baseURL); await home(midnight);
     assert.equal((await snapshot(midnight)).state.daily.dateKey, '2026-10-27');
     await midnight.getByRole('button', { name: /今日尋寶/ }).click();
-    await midnight.locator('.mission-list button').first().click();
+    await midnight.locator('.quest-card-action').first().click();
     await midnight.getByRole('button', { name: '取消目前任務' }).waitFor();
     await midnight.clock.setFixedTime(new Date('2026-10-28T00:00:10'));
     await midnight.waitForFunction(async () => {

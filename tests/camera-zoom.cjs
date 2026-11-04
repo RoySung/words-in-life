@@ -22,11 +22,14 @@ const out = path.resolve(process.env.TEST_OUTPUT_DIR || 'test-results');
             const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
             const ctx = canvas.getContext('2d');
             ctx.fillStyle = '#e8dac5'; ctx.fillRect(0, 0, width, height);
-            // Four colored edges bound exactly the center half of the source.
-            ctx.fillStyle = '#ff0000'; ctx.fillRect(width / 4, height / 4, 40, height / 2);
-            ctx.fillStyle = '#0000ff'; ctx.fillRect(width * 3 / 4 - 40, height / 4, 40, height / 2);
-            ctx.fillStyle = '#00ff00'; ctx.fillRect(width / 4, height / 4, width / 2, 40);
-            ctx.fillStyle = '#ffff00'; ctx.fillRect(width / 4, height * 3 / 4 - 40, width / 2, 40);
+            // Four colored edges bound the 2x region inside the 3:4 crop.
+            const cropWidth = Math.min(width, height * 3 / 4);
+            const cropHeight = cropWidth * 4 / 3;
+            const x = (width - cropWidth / 2) / 2, y = (height - cropHeight / 2) / 2;
+            ctx.fillStyle = '#ff0000'; ctx.fillRect(x, y, 40, cropHeight / 2);
+            ctx.fillStyle = '#0000ff'; ctx.fillRect(x + cropWidth / 2 - 40, y, 40, cropHeight / 2);
+            ctx.fillStyle = '#00ff00'; ctx.fillRect(x, y, cropWidth / 2, 40);
+            ctx.fillStyle = '#ffff00'; ctx.fillRect(x, y + cropHeight / 2 - 40, cropWidth / 2, 40);
             return canvas.captureStream(10);
           };
         }, { width, height });
@@ -63,7 +66,7 @@ const out = path.resolve(process.env.TEST_OUTPUT_DIR || 'test-results');
             const video = document.querySelector('video');
             if (!frame || !video.videoHeight) return false;
             const bounds = frame.parentElement.getBoundingClientRect();
-            const ratio = video.videoWidth / video.videoHeight;
+            const ratio = 3 / 4;
             const expectedWidth = Math.min(bounds.width, bounds.height * ratio);
             return Math.abs(frame.clientWidth / frame.clientHeight - ratio) < .01
               && Math.abs(frame.getBoundingClientRect().width - expectedWidth) < 1;
@@ -83,7 +86,7 @@ const out = path.resolve(process.env.TEST_OUTPUT_DIR || 'test-results');
           assert.equal(geometry.clip, 'hidden');
           assert.ok(Math.abs(geometry.scaleX - zoom) < .01 && Math.abs(geometry.scaleY - zoom) < .01, 'preview must magnify both axes equally');
           assert.ok(Math.abs(geometry.centerX) < 1 && Math.abs(geometry.centerY) < 1, 'zoom must stay centered');
-          assert.ok(Math.abs(geometry.ratio - width / height) < .01, 'preview crop must retain source aspect ratio');
+          assert.ok(Math.abs(geometry.ratio - 3 / 4) < .01, 'preview must stay 3:4 for every source');
           assert.equal(geometry.overflow, false);
           if (viewport.width === 390 || viewport.width === 1440) await page.screenshot({ path: `${out}/camera-zoom-${width}-${zoom}x-${viewport.width}.png` });
         }
@@ -100,10 +103,11 @@ const out = path.resolve(process.env.TEST_OUTPUT_DIR || 'test-results');
           };
           return [await inspect(capture), await inspect(`data:${submitted.mimeType};base64,${submitted.data}`)];
         }, { capture, submitted });
-        assert.equal(images[0].width, width / zoom);
-        assert.equal(images[0].height, height / zoom);
+        const cropWidth = Math.min(width, height * 3 / 4);
+        assert.equal(images[0].width, Math.round(cropWidth / zoom));
+        assert.equal(images[0].height, Math.round(cropWidth * 4 / 3 / zoom));
         for (const image of images) {
-          assert.ok(Math.abs(image.width / image.height - width / height) < .002);
+          assert.ok(Math.abs(image.width / image.height - 3 / 4) < .002);
           const expected = zoom === 2 ? [[255, 0, 0], [0, 0, 255], [0, 255, 0], [255, 255, 0]] : Array(4).fill([232, 218, 197]);
           image.edges.forEach((pixel, i) => pixel.forEach((channel, c) => assert.ok(Math.abs(channel - expected[i][c]) < 15, `${zoom}x capture/upload must match the selected source region`)));
         }

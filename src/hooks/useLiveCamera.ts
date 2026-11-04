@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 
+const CAMERA_RATIO = 3 / 4;
+
 /** Own the stream for one visible camera surface; stale permission results are stopped. */
 export function useLiveCamera(enabled = true) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const [previewBounds, setPreviewBounds] = useState({ width: 0, height: 0 });
-  const [sourceRatio, setSourceRatio] = useState(1);
   const [zoom, setZoom] = useState<1 | 2>(1);
   const [attempt, setAttempt] = useState(0);
   const [visible, setVisible] = useState(() => !document.hidden);
@@ -38,7 +39,7 @@ export function useLiveCamera(enabled = true) {
     (async () => {
       try {
         if (!navigator.mediaDevices?.getUserMedia) throw new Error('unavailable');
-        const next = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
+        const next = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1440 }, height: { ideal: 1920 }, aspectRatio: { ideal: CAMERA_RATIO } }, audio: false });
         if (disposed) { next.getTracks().forEach(t => t.stop()); return; }
         stream = next;
         next.getVideoTracks().forEach(t => t.addEventListener('ended', ended));
@@ -62,8 +63,9 @@ export function useLiveCamera(enabled = true) {
     const video = videoRef.current;
     if (status !== 'ready' || !video?.videoWidth || video.readyState < 2) return null;
     const canvas = document.createElement('canvas');
-    const sourceWidth = video.videoWidth / zoom;
-    const sourceHeight = video.videoHeight / zoom;
+    // Match the centered object-fit: cover preview even when a camera ignores the preferred ratio.
+    const sourceWidth = Math.min(video.videoWidth, video.videoHeight * CAMERA_RATIO) / zoom;
+    const sourceHeight = sourceWidth / CAMERA_RATIO;
     canvas.width = Math.max(1, Math.round(sourceWidth));
     canvas.height = Math.max(1, Math.round(sourceHeight));
     const context = canvas.getContext('2d');
@@ -72,13 +74,12 @@ export function useLiveCamera(enabled = true) {
       sourceWidth, sourceHeight, 0, 0, canvas.width, canvas.height);
     return canvas.toDataURL('image/jpeg', .88);
   };
-  // Clip zoom inside the contained source frame, rather than enlarging its letterbox.
-  const previewWidth = Math.min(previewBounds.width, previewBounds.height * sourceRatio);
-  const previewStyle = { width: previewWidth, height: previewWidth / sourceRatio };
+  // Keep the capture frame at 3:4; zoom clips within this frame without enlarging its letterbox.
+  const previewWidth = Math.min(previewBounds.width, previewBounds.height * CAMERA_RATIO);
+  const previewStyle = { width: previewWidth, height: previewWidth / CAMERA_RATIO };
   const onReady = () => {
     const video = videoRef.current;
     if (!video?.videoWidth || !video.videoHeight) return;
-    setSourceRatio(video.videoWidth / video.videoHeight);
     if (video.readyState >= 2) setStatus('ready');
   };
   return { videoRef, previewRef, previewStyle, zoom, setZoom, status, error, capture, retry: () => setAttempt(n => n + 1), onReady };

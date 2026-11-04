@@ -41,10 +41,13 @@ async function assertFullPhoto(locator, label) {
             canvas.width = width; canvas.height = height;
             const context = canvas.getContext('2d');
             context.fillStyle = '#e8dac5'; context.fillRect(0, 0, width, height);
-            context.fillStyle = '#ff0000'; context.fillRect(0, 0, 60, height);
-            context.fillStyle = '#0000ff'; context.fillRect(width - 60, 0, 60, height);
-            context.fillStyle = '#00ff00'; context.fillRect(0, 0, width, 60);
-            context.fillStyle = '#ffff00'; context.fillRect(0, height - 60, width, 60);
+            const cropWidth = Math.min(width, height * 3 / 4);
+            const cropHeight = cropWidth * 4 / 3;
+            const x = (width - cropWidth) / 2, y = (height - cropHeight) / 2;
+            context.fillStyle = '#ff0000'; context.fillRect(x, y, 60, cropHeight);
+            context.fillStyle = '#0000ff'; context.fillRect(x + cropWidth - 60, y, 60, cropHeight);
+            context.fillStyle = '#00ff00'; context.fillRect(x, y, cropWidth, 60);
+            context.fillStyle = '#ffff00'; context.fillRect(x, y + cropHeight - 60, cropWidth, 60);
             return canvas.captureStream(10);
           };
         }, { width, height });
@@ -62,7 +65,11 @@ async function assertFullPhoto(locator, label) {
         await page.waitForFunction(() => document.querySelector('video')?.readyState >= 2);
         for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }, { width: 1440, height: 1000 }]) {
           await page.setViewportSize(viewport);
-          await assertFullPhoto(page.locator('.home-viewfinder video'), `preview ${width}×${height} at ${viewport.width}px`);
+          await page.waitForFunction(() => {
+            const frame = document.querySelector('.camera-preview-frame');
+            return frame && Math.abs(frame.clientWidth / frame.clientHeight - 3 / 4) < .01;
+          }, null, { timeout: 3000 });
+          assert.equal(await page.locator('.home-viewfinder video').evaluate(video => getComputedStyle(video).objectFit), 'cover');
           if (reducedMotion === 'reduce' && width === 1600 && viewport.width !== 320) {
             await page.screenshot({ path: `${out}/camera-preview-${viewport.width}.png` });
           }
@@ -81,11 +88,14 @@ async function assertFullPhoto(locator, label) {
             ratio: img.clientWidth / img.clientHeight,
             sourceRatio: img.naturalWidth / img.naturalHeight,
             sideBorder: (img.parentElement.clientWidth - img.clientWidth) / 2,
+            captionHeight: img.nextElementSibling.clientHeight,
           }));
           assert.ok(Math.abs(geometry.ratio - geometry.sourceRatio) < .02,
             'print image box must follow the source ratio without internal blank space');
           assert.ok(Math.abs(geometry.sideBorder - 12) <= 1,
             'print frame must keep narrow side borders for every photo ratio');
+          // Short screens narrow the whole print; allow the status to wrap rather than shrink its text.
+          assert.ok(geometry.captionHeight <= (viewport.width === 320 ? 106 : 80), `recognition caption must stay compact at ${viewport.width}px: ${JSON.stringify(geometry)}`);
           const cancel = page.getByRole('button', { name: '取消辨識' });
           await cancel.scrollIntoViewIfNeeded();
           assert.equal(await cancel.isVisible(), true);
@@ -103,9 +113,9 @@ async function assertFullPhoto(locator, label) {
           return [await inspect(capture), await inspect(`data:${uploaded.mimeType};base64,${uploaded.data}`)];
         }, { capture, uploaded });
         for (const image of content) {
-          assert.ok(Math.abs(image.ratio - width / height) < .002, 'capture and upload must retain source aspect ratio');
+          assert.ok(Math.abs(image.ratio - 3 / 4) < .002, 'capture and upload must match the 3:4 preview');
           const colors = [[255, 0, 0], [0, 0, 255], [0, 255, 0], [255, 255, 0]];
-          image.edges.forEach((pixel, index) => pixel.forEach((channel, c) => assert.ok(Math.abs(channel - colors[index][c]) < 15, 'capture/upload lost a source edge')));
+          image.edges.forEach((pixel, index) => pixel.forEach((channel, c) => assert.ok(Math.abs(channel - colors[index][c]) < 15, 'capture/upload must match a preview crop edge')));
         }
         release();
         await page.getByRole('heading', { name: '照片範圍測試' }).waitFor();

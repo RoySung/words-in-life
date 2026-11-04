@@ -43,7 +43,7 @@ export function SettingsView({ apiKey, notice, onSave, onBack }: SettingsViewPro
             <input id="gemini-api-key" type={visible ? 'text' : 'password'} value={draft} onChange={event => { setDraft(event.target.value); setError(''); setMessage(''); }} placeholder="貼上你的 Gemini API key" autoComplete="off" autoCapitalize="none" spellCheck={false} aria-describedby={error ? 'key-help key-error' : 'key-help'} aria-invalid={!!error} />
             <IconButton type="button" label={visible ? '隱藏 API key' : '顯示 API key'} aria-pressed={visible} onClick={() => setVisible(value => !value)}>{visible ? <EyeOff /> : <Eye />}</IconButton>
           </div>
-          <p id="key-help" className="settings-help">Key 只儲存在這個瀏覽器；辨識時直接將照片與 key 傳給 Google。開啟今日尋寶時，會傳送日期、時區、單字與複習摘要以生成個人化任務，該請求不含照片。共用裝置使用完畢後，請清除 key。</p>
+          <p id="key-help" className="settings-help">Key 只儲存在這個瀏覽器；辨識時直接將照片與 key 傳給 Google。開啟今日尋寶時，會傳送日期、時區、已收藏單字清單以生成個人化任務，該請求不含照片。共用裝置使用完畢後，請清除 key。</p>
           {error && <p id="key-error" className="settings-error" role="alert">{error}</p>}
           <div className="settings-actions"><Button type="submit">儲存設定</Button><Button type="button" variant="secondary" disabled={!apiKey} onClick={() => save(true)}>清除 API key</Button></div>
           <p className="settings-feedback" role="status">{message}</p>

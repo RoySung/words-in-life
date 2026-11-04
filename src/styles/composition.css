@@ -161,7 +161,7 @@
 .home-viewfinder { text-align: initial; isolation: isolate; }
 .camera-preview { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
 .camera-preview-frame { flex: none; overflow: hidden; }
-.home-viewfinder video { width: 100%; height: 100%; object-fit: contain; display: block; transform-origin: center; }
+.home-viewfinder video { width: 100%; height: 100%; object-fit: cover; display: block; transform-origin: center; }
 .mission-viewfinder-controls { position: absolute; top: 18px; left: 16px; right: 16px; display: flex; justify-content: center; align-items: center; gap: 4px; z-index: 3; }
 .mission-viewfinder-entry { min-height: 44px; max-width: 100%; padding: 8px 14px; display: inline-flex; gap: 10px; align-items: center; border-radius: 24px; background: var(--vs-overlay-bg); color: var(--vs-paper); font-size: 12px; }
 .mission-viewfinder-entry > span:not(.mission-trophy-wrap) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -200,8 +200,8 @@
 /* Cover the paper character with the entire print, including its white frame. */
 .home-print-photo::before { content: ''; position: absolute; inset: 0; z-index: 0; background: inherit; pointer-events: none; }
 .home-print-photo img { position: relative; z-index: 1; display: block; width: 100%; height: auto; aspect-ratio: auto; object-fit: contain; filter: saturate(.75) contrast(.84) brightness(1.08); animation: develop-image 1.6s ease-out forwards; }
-.home-print-photo figcaption { position: relative; z-index: 1; display: grid; place-items: center; min-height: 96px; padding: 12px 4px 18px; background: #fffdf9; color: var(--vs-coffee); text-align: center; font-size: 13px; letter-spacing: normal; opacity: 0; animation: print-caption .35s ease-out 1.2s forwards; }
-.recognition-search { position: relative; width: 100px; height: 36px; margin-bottom: 6px; }
+.home-print-photo figcaption { position: relative; z-index: 1; display: grid; place-items: center; min-height: 76px; padding: 8px 4px 10px; background: #fffdf9; color: var(--vs-coffee); text-align: center; font-size: 13px; letter-spacing: normal; opacity: 0; animation: print-caption .35s ease-out 1.2s forwards; }
+.recognition-search { position: relative; width: 100px; height: 36px; margin-bottom: 4px; }
 .recognition-magnifier { position: absolute; top: 0; left: 35px; width: 28px; height: 28px; border: 3px solid var(--vs-coffee); border-radius: 50%; background: #edf2ef; box-shadow: inset 2px 2px 0 #fffdf9; transform-origin: center; animation: recognition-search 4.8s ease-in-out infinite; }
 .recognition-magnifier::after { content: ''; position: absolute; right: -7px; bottom: -12px; width: 6px; height: 17px; border-radius: 3px; background: var(--vs-coffee); transform: rotate(-40deg); }
 .recognition-lens-detail { position: absolute; inset: 4px; display: grid; align-content: center; gap: 3px; overflow: hidden; border-radius: 50%; transform: scale(1.2); }

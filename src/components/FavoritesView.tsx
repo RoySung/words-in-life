@@ -19,6 +19,7 @@ export function FavoritesView({ photoUrls, savedWords, onBack, onSelectItem, onR
   const filtered = savedWords.filter(w => (category === '全部' || wordCategory(w.word) === category) && `${w.word} ${w.chinese}`.toLowerCase().includes(query.trim().toLowerCase()));
   return <div className="app-page collection-page">
     <header className="page-header"><h1>我的單字</h1><div className="action-group"><IconButton label="搜尋單字" aria-expanded={search} onClick={() => { if (search) setQuery(''); setSearch(!search); }}><Search /></IconButton><IconButton label={list ? '切換網格檢視' : '切換列表檢視'} aria-pressed={list} onClick={() => setList(!list)}>{list ? <LayoutGrid /> : <List />}</IconButton></div></header>
+    {savedWords.length > 0 && <div className="review-link"><Button variant="secondary" onClick={onStartQuiz}><BookOpen />開始選擇題複習</Button></div>}
     {search && <SearchField autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder="搜尋英文或中文…" />}
     <div className="category-strip" aria-label="單字分類">{WORD_CATEGORIES.map(c => <Chip key={c} selected={category === c} onClick={() => setCategory(c)}>{c}<span>{savedWords.filter(w => c === '全部' || wordCategory(w.word) === c).length}</span></Chip>)}</div>
     <main>
@@ -30,7 +31,6 @@ export function FavoritesView({ photoUrls, savedWords, onBack, onSelectItem, onR
         </button>
         <div className="collection-actions"><IconButton label={`播放 ${w.word} 發音`} onClick={() => speakEnglish(w.word)}><Volume2 /></IconButton><IconButton label={`查看 ${w.word} 原圖`} onClick={() => setSource(w)} disabled={!w.photo && !w.originalImageUrl && !w.imageUrl}><Image /></IconButton><IconButton label={`移除 ${w.word}`} onClick={() => onRemoveWord(w.id)}><Trash2 /></IconButton></div>
       </article>)}</div>}
-      {savedWords.length > 0 && <div className="review-link"><p>留一點時間，讓新單字變熟悉。</p><Button variant="secondary" onClick={onStartQuiz}><BookOpen />開始選擇題複習</Button></div>}
     </main>
     {source && <PhotoSourceModal photo={source.photo} photoUrls={photoUrls} isOpen onClose={() => setSource(null)} originalImageUrl={source.originalImageUrl || source.imageUrl || ''} stickerUrl={source.stickerUrl} word={source.word} chinese={source.chinese} emoji={source.emoji} position={source.position} sceneTitle={source.sceneTitle} />}
   </div>;

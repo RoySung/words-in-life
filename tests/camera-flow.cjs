@@ -30,6 +30,7 @@ const assert = require('node:assert/strict');
     await page.waitForFunction(() => document.querySelector('video')?.readyState >= 2);
     assert(await shutter.isEnabled());
     assert.equal(await page.evaluate(() => window.cameraTest.requests[0].video.facingMode.ideal), 'environment');
+    assert.equal(await page.evaluate(() => window.cameraTest.requests[0].video.aspectRatio.ideal), 3 / 4);
     const cameraToggle = page.getByRole('switch', {name:'鏡頭',exact:true});
     await cameraToggle.click();
     assert.equal(await cameraToggle.getAttribute('aria-checked'), 'false');
@@ -55,8 +56,8 @@ const assert = require('node:assert/strict');
     assert.equal(await cameraToggle.getAttribute('aria-checked'), 'true');
     assert(await shutter.isEnabled());
     await page.getByRole('button',{name:/今日尋寶/}).click();
-    const target = await page.locator('.mission-list button').first().locator('strong').textContent();
-    await page.locator('.mission-list button').first().click();
+    const target = await page.locator('.quest-card-action').first().locator('strong').textContent();
+    await page.locator('.quest-card-action').first().click();
     await page.getByRole('button',{name:'取消目前任務'}).waitFor(); // Selection now durably locks the day's missions first.
     assert.equal(await page.getByRole('dialog').count(),0);
     await page.getByRole('button',{name:'取消目前任務'}).click();

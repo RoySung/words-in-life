@@ -1,5 +1,5 @@
 import { createMissionContext, generatedMissions } from '../domain/missionGeneration';
-import { getTodayDateKey, lockMissions, rollDate, type MissionFallbackReason } from '../domain/missions';
+import { generateDailyMissionsForDate, getTodayDateKey, lockMissions, rollDate, type MissionFallbackReason } from '../domain/missions';
 import { AppError, type LibraryRepository, type LibrarySnapshot } from '../repository/LibraryRepository';
 import type { MissionGenerationRepository } from '../repository/MissionGenerationRepository';
 import { createExecutor, type Dependencies } from './library';
@@ -59,7 +59,7 @@ export function createMissionGenerationUsecases(repository: LibraryRepository, g
       const finalMissions = missions && generatedMissions(missions, dateKey, snapshot.words, context);
       const daily = finalMissions
         ? { ...snapshot.daily, missions: finalMissions, generation: { status: 'ready' as const, source: 'ai' as const, generatedAt: deps.now() } }
-        : lockMissions(snapshot.daily, deps.now(), fallbackReason);
+        : lockMissions({ ...snapshot.daily, missions: generateDailyMissionsForDate(dateKey, snapshot.words.map(w => w.word)) }, deps.now(), fallbackReason);
       return { changes: { daily }, result: { kind: 'day' } };
     });
     return result.snapshot;
