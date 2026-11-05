@@ -387,3 +387,25 @@
   .mission-sparkle--three { animation-delay: 1.1s; }
 }
 @media (prefers-reduced-motion: reduce) { .mission-sparkle--one { opacity: 1; } }
+
+.collection-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin-inline: -18px;
+  padding-inline: 18px;
+  background: var(--vs-bg) url('/design-system/paper-grain.png');
+}
+.collection-toolbar .page-header {
+  padding-top: max(22px, env(safe-area-inset-top, 0px));
+}
+
+.collection-toolbar > .vs-field { margin-bottom: 12px; }
+
+/* Keep completion content readable and controls separated on narrow screens. */
+.mission-dialog h1:focus { outline: none; }
+.mission-dialog .vs-polaroid { margin-inline: clamp(0px, 4vw, 20px); }
+.mission-word { display: flex; align-items: center; justify-content: center; gap: 16px; min-width: 0; }
+.mission-word strong { min-width: 0; overflow-wrap: anywhere; }
+.mission-word .vs-icon-button:focus-visible { outline-offset: 0; }
+.mission-dialog .vs-button:disabled { opacity: 1; background: var(--vs-sand); color: var(--vs-coffee); }

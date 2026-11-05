@@ -1,3 +1,4 @@
+import { SAMPLE_SCENES } from '../data/sampleScenes';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Services } from '../createServices';
 import type { LibrarySnapshot } from '../repository/LibraryRepository';
@@ -6,7 +7,13 @@ import { errorMessage } from '../utils/errorMessage';
 import type { PhotoRef } from '../domain/photos';
 const asset = (ref?: PhotoRef) => ref?.kind === 'asset' ? ref.path : undefined;
 function view(snapshot: LibrarySnapshot) {
-  return { ...snapshot, words: snapshot.words.map(w => ({ ...w, imageUrl: asset(w.photo), originalImageUrl: asset(w.photo), stickerUrl: asset(w.crop) })) as SavedWord[],
+  return { ...snapshot, words: snapshot.words.map(w => {
+    const scene = SAMPLE_SCENES.find(scene => scene.imageUrl === asset(w.photo));
+    const sample = scene?.items.find(item => item.word === w.word);
+    const crop = sample?.stickerUrl ? { kind: 'asset' as const, path: sample.stickerUrl } : w.crop;
+    return { ...w, crop, boundingBox: sample?.boundingBox ?? w.boundingBox,
+      imageUrl: asset(w.photo), originalImageUrl: asset(w.photo), stickerUrl: asset(crop) };
+  }) as SavedWord[],
     daily: { ...snapshot.daily, missions: snapshot.daily.missions.map(m => ({ ...m, completedPhotoUrl: asset(m.completedPhoto), completedStickerUrl: asset(m.completedCrop) })) as DailyMission[] } };
 }
 export function useLibrary(services: Services) {

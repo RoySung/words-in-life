@@ -18,10 +18,12 @@ export function FavoritesView({ photoUrls, savedWords, onBack, onSelectItem, onR
   const [source, setSource] = useState<SavedWord | null>(null);
   const filtered = savedWords.filter(w => (category === '全部' || wordCategory(w.word) === category) && `${w.word} ${w.chinese}`.toLowerCase().includes(query.trim().toLowerCase()));
   return <div className="app-page collection-page">
+    <div className="collection-toolbar">
     <header className="page-header"><h1>我的單字</h1><div className="action-group"><IconButton label="搜尋單字" aria-expanded={search} onClick={() => { if (search) setQuery(''); setSearch(!search); }}><Search /></IconButton><IconButton label={list ? '切換網格檢視' : '切換列表檢視'} aria-pressed={list} onClick={() => setList(!list)}>{list ? <LayoutGrid /> : <List />}</IconButton></div></header>
     {savedWords.length > 0 && <div className="review-link"><Button variant="secondary" onClick={onStartQuiz}><BookOpen />開始選擇題複習</Button></div>}
     {search && <SearchField autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder="搜尋英文或中文…" />}
     <div className="category-strip" aria-label="單字分類">{WORD_CATEGORIES.map(c => <Chip key={c} selected={category === c} onClick={() => setCategory(c)}>{c}<span>{savedWords.filter(w => c === '全部' || wordCategory(w.word) === c).length}</span></Chip>)}</div>
+    </div>
     <main>
       {!filtered.length ? <div className="empty-state"><BookOpen /><h2>{savedWords.length ? '找不到這個單字' : '把日常，收進單字本'}</h2><p>{savedWords.length ? '試試其他關鍵字或分類。' : '拍下一張照片，收藏你想記住的英文。'}</p><Button onClick={savedWords.length ? () => { setQuery(''); setCategory('全部'); } : onBack}>{savedWords.length ? '顯示全部單字' : '開始探索'}</Button></div> :
       <div className={`word-gallery ${list ? 'word-gallery--list' : ''}`}>{filtered.map(w => <article className="collection-card" key={w.id}>

@@ -1,7 +1,7 @@
 import type { SavedWord } from '../../types';
 import { SAMPLE_SCENES } from '../../data/sampleScenes';
 
-export const INITIAL_SAVED_WORDS: SavedWord[] = [
+const initialWords: SavedWord[] = [
   {
     id: 'coffee',
     word: 'coffee',
@@ -71,3 +71,9 @@ export const INITIAL_SAVED_WORDS: SavedWord[] = [
     position: { x: 38, y: 84 },
   },
 ];
+
+// Seed words use the same subject bounds as the interactive sample.
+export const INITIAL_SAVED_WORDS: SavedWord[] = initialWords.map(word => {
+  const sample = SAMPLE_SCENES[0].items.find(item => item.id === word.id);
+  return { ...word, stickerUrl: sample?.stickerUrl, boundingBox: sample?.boundingBox, position: sample?.position ?? word.position };
+});

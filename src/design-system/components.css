@@ -15,6 +15,8 @@
 .vs-tag--blue { background: #dce4e1; color: var(--vs-blue); }
 .vs-input-wrap { display: flex; align-items: center; gap: 10px; padding: 0 14px; border: 1px solid var(--vs-control-border); border-radius: var(--vs-radius-md); background: var(--vs-paper); }
 .vs-input-wrap input { min-width: 0; width: 100%; min-height: 46px; background: transparent; border: 0; color: var(--vs-text); }
+.vs-input-wrap:focus-within { outline: 2px solid var(--vs-focus); outline-offset: 2px; }
+.vs-input-wrap input:focus-visible { outline: none; }
 .vs-input-wrap input::placeholder { color: var(--vs-muted); }
 .vs-error { color: var(--vs-error); font-size: 13px; margin: 8px 0 0; }
 .vs-progress { display: grid; gap: 12px; }
