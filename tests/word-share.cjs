@@ -10,7 +10,7 @@ const assert = require('node:assert/strict');
     await page.getByRole('button', { name: '分享單字', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: '分享單字', exact: true });
     await dialog.locator('.word-share-preview').waitFor();
-    await page.waitForFunction(() => !document.querySelector('.word-share-dialog')?.classList.contains('is-morphing'));
+    await page.waitForFunction(() => !document.querySelector('.word-share-dialog')?.classList.contains('is-morphing') && !document.querySelector('.word-share-flight-photo'));
     assert.equal(await page.locator('.word-share-flight-photo').count(), 0);
     assert.equal(await page.locator('.detail-polaroid img').evaluate(image => image.style.visibility), '');
     const dimensions = await dialog.locator('.word-share-preview').evaluate(async image => {
@@ -44,8 +44,28 @@ const assert = require('node:assert/strict');
     await page.getByRole('button', { name: '分享單字', exact: true }).click();
     await dialog.locator('.word-share-preview').waitFor();
     await page.screenshot({ path: '/tmp/word-share-desktop.png', fullPage: true });
-    await page.waitForFunction(() => !document.querySelector('.word-share-dialog')?.classList.contains('is-morphing'));
+    await page.waitForFunction(() => !document.querySelector('.word-share-dialog')?.classList.contains('is-morphing') && !document.querySelector('.word-share-flight-photo'));
     await dialog.getByRole('button', { name: '關閉分享' }).click();
+    await dialog.waitFor({ state: 'detached' });
+    // Keep React mounted briefly after the close helper resolves: its terminal
+    // frame must already be closed, before cleanup restores faded elements.
+    await page.getByRole('button', { name: '分享單字', exact: true }).click();
+    await page.waitForFunction(() => {
+      const dialog = document.querySelector('.word-share-dialog');
+      return dialog?.querySelector('.word-share-preview') && !dialog.classList.contains('is-morphing') && !dialog.classList.contains('is-preparing') && !dialog.querySelector('.word-share-flight-photo');
+    });
+    const terminal = await page.evaluate(async () => {
+      const { closeWordShare } = await import('/src/utils/wordShareMotion.ts');
+      const dialog = document.querySelector('.word-share-dialog');
+      const origin = document.querySelector('.detail-polaroid img');
+      await closeWordShare(dialog, origin);
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      return { open: dialog.open, originVisibility: origin.style.visibility, layers: dialog.querySelectorAll('.word-share-flight-photo, .word-share-flight-paper').length };
+    });
+    assert.equal(terminal.open, false, 'close must hide the native dialog before restoring faded content');
+    assert.equal(terminal.originVisibility, '');
+    assert.equal(terminal.layers, 0);
+    await page.locator('.word-share-dialog button[aria-label="關閉分享"]').evaluate(button => button.click());
     await dialog.waitFor({ state: 'detached' });
     // Pause the opening animation to verify the moving photo and its actual origin.
     await page.getByRole('button', { name: '分享單字', exact: true }).click();

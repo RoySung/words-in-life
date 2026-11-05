@@ -56,11 +56,13 @@ export function openWordShare(dialog: HTMLDialogElement, preview: HTMLImageEleme
 }
 
 export async function closeWordShare(dialog: HTMLDialogElement, origin?: HTMLImageElement | null) {
-  if (reducedMotion()) return;
+  if (!dialog.open) return;
+  if (reducedMotion()) { dialog.close(); return; }
   const preview = dialog.querySelector<HTMLImageElement>('.word-share-preview');
   if (!preview || !origin?.complete || !origin.naturalWidth) {
     const fade = dialog.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill: 'forwards' });
     try { await fade.finished; } catch { /* Unmount may cancel the animation. */ }
+    finally { dialog.close(); fade.cancel(); }
     return;
   }
   const from = preview.getBoundingClientRect();
@@ -87,6 +89,9 @@ export async function closeWordShare(dialog: HTMLDialogElement, origin?: HTMLIma
   const travel = animate(photo, [{ ...frame(photoFrom), transform: 'rotate(0)' }, { ...frame(to), transform: 'rotate(-3deg)' }], 280);
   try { await travel.finished; } catch { /* Unmount may cancel the animation. */ }
   finally {
+    // Leave the top layer before cancelling fill effects. React may unmount
+    // later; restoring opacity while still open would flash the entire card.
+    dialog.close();
     origin.style.visibility = previousVisibility;
     paper.remove(); photo.remove(); animations.forEach(animation => animation.cancel());
   }
