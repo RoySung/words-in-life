@@ -44,7 +44,10 @@ export function FlashcardQuiz({ words: sourceWords, onClose, onReview, photoUrls
     if (!word || savingRef.current || saved) return;
     savingRef.current = true;
     setSelected(answer); setSaving(true); setSaveError('');
-    window.speechSynthesis?.cancel();
+    if (selected === null) {
+      if (answer === word.word) void speakEnglish(word.word);
+      else window.speechSynthesis?.cancel();
+    }
     try {
       const success = onReview ? await onReview(word.id, answer === word.word) : true;
       if (!success) throw new Error('save failed');
