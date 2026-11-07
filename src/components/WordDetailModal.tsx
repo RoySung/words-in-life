@@ -47,12 +47,13 @@ export const WordDetailModal: React.FC<WordDetailModalProps> = ({
       setIsCopying(false);
     }
   };
-  const query = encodeURIComponent(item.word);
+  const query = encodeURIComponent(item.word.trim());
   const dictionaries = [
-    { name: 'Cambridge', url: `https://dictionary.cambridge.org/dictionary/english-chinese-traditional/${query}` },
-    { name: 'Oxford', url: `https://www.oxfordlearnersdictionaries.com/definition/english/${query}` },
-    { name: '韋氏字典', url: `https://www.merriam-webster.com/dictionary/${query}` },
+    // Pass complete terms to search; each dictionary determines whether an entry exists.
+    { name: 'Cambridge', url: `https://dictionary.cambridge.org/search/direct/?datasetsearch=english-chinese-traditional&q=${query}` },
     { name: 'Google 翻譯', url: `https://translate.google.com/?sl=en&tl=zh-TW&text=${query}&op=translate` },
+    { name: 'Oxford', url: `https://www.oxfordlearnersdictionaries.com/search/english/?q=${query}` },
+    { name: '韋氏字典', url: `https://www.merriam-webster.com/dictionary/${query}` },
   ];
   const moreId = useId();
   const [more, setMore] = useState(false);
