@@ -11,7 +11,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 }
 
 /** Render once; preview, download and native sharing all use the same PNG. */
-export async function createWordShareImage(item: DetectedItem, photo: HTMLImageElement): Promise<Blob> {
+export async function createWordShareImage(item: DetectedItem, photo: HTMLImageElement, referencePaper?: HTMLElement | null): Promise<{ image: Blob; preview: Blob }> {
   const [logo, wood, grain] = await Promise.all([loadImage('/icons/logo.png'), loadImage('/design-system/share-wood.png'), loadImage('/design-system/paper-grain.png'), document.fonts.ready]);
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
@@ -77,9 +77,6 @@ export async function createWordShareImage(item: DetectedItem, photo: HTMLImageE
   output.height = Math.ceil(canvas.height * SHARE_CARD_SCALE + SHARE_DESK_MARGIN * 2);
   const desk = output.getContext('2d');
   if (!desk) throw new Error('無法產生圖片');
-  // Cover the export with a local wood texture; the user's photo is never regenerated.
-  const woodScale = Math.max(output.width / wood.naturalWidth, output.height / wood.naturalHeight);
-  desk.drawImage(wood, (width - wood.naturalWidth * woodScale) / 2, (output.height - wood.naturalHeight * woodScale) / 2, wood.naturalWidth * woodScale, wood.naturalHeight * woodScale);
   desk.save();
   desk.translate(width / 2, output.height / 2);
   desk.rotate(SHARE_ROTATION * Math.PI / 180);
@@ -89,15 +86,45 @@ export async function createWordShareImage(item: DetectedItem, photo: HTMLImageE
   desk.beginPath(); desk.roundRect(-width / 2, -canvas.height / 2, width, canvas.height, 5); desk.fill();
   desk.shadowColor = 'transparent';
   desk.save(); desk.clip(); desk.drawImage(canvas, -width / 2, -canvas.height / 2); desk.restore();
-  // Translucent tan tape with small torn ends, matching the app's Polaroid.
-  desk.translate(0, -canvas.height / 2); desk.rotate(-3 * Math.PI / 180);
-  desk.fillStyle = '#e4caa2bc'; desk.beginPath();
-  desk.moveTo(-180, -27);
-  for (let i = 0; i < 6; i++) desk.lineTo(180 - (i % 2) * 8, -27 + i * 11);
-  desk.lineTo(-180, 28);
-  for (let i = 0; i < 6; i++) desk.lineTo(-180 + (i % 2) * 8, 28 - i * 11);
+  // Use the notebook's actual pseudo-element as the tape's visual authority.
+  // A hidden reference keeps exports consistent when the source photo is absent.
+  const tapePaper = referencePaper ?? document.createElement('figure');
+  if (!referencePaper) {
+    tapePaper.className = 'vs-polaroid vs-polaroid--taped';
+    Object.assign(tapePaper.style, { position: 'absolute', width: '220px', visibility: 'hidden' });
+    photo.parentElement?.append(tapePaper);
+  }
+  const tape = getComputedStyle(tapePaper, '::before');
+  const paperWidth = parseFloat(getComputedStyle(tapePaper).width);
+  const tapeScale = width / paperWidth;
+  const tapeWidth = parseFloat(tape.width) * tapeScale;
+  const tapeHeight = parseFloat(tape.height) * tapeScale;
+  const tapeLeft = parseFloat(tape.left) * tapeScale;
+  const tapeTop = parseFloat(tape.top) * tapeScale;
+  const tapeColor = tape.backgroundColor;
+  const tapeTransform = new DOMMatrix(tape.transform);
+  const tapeAngle = Math.atan2(tapeTransform.b, tapeTransform.a);
+  const tapePoints = tape.clipPath.slice('polygon('.length, -1).split(',').map(point => point.trim().split(/\s+/).map(parseFloat));
+  if (!referencePaper) tapePaper.remove();
+  desk.translate(-width / 2 + tapeLeft + tapeWidth / 2, -canvas.height / 2 + tapeTop + tapeHeight / 2);
+  desk.rotate(tapeAngle);
+  desk.fillStyle = tapeColor; desk.beginPath();
+  tapePoints.forEach(([x, y], index) => {
+    const px = (x / 100 - .5) * tapeWidth;
+    const py = (y / 100 - .5) * tapeHeight;
+    if (index === 0) desk.moveTo(px, py); else desk.lineTo(px, py);
+  });
   desk.closePath(); desk.fill(); desk.restore();
-  return new Promise((resolve, reject) => output.toBlob(blob => blob ? resolve(blob) : reject(new Error('圖片產生失敗')), 'image/png'));
+  const toBlob = () => new Promise<Blob>((resolve, reject) => output.toBlob(blob => blob ? resolve(blob) : reject(new Error('圖片產生失敗')), 'image/png'));
+  // The screen floats the same card over a full-viewport desk. The saved image
+  // keeps its opaque wood background, without including any interface controls.
+  const preview = await toBlob();
+  desk.globalCompositeOperation = 'destination-over';
+  // Cover the export with a local wood texture; the user's photo is never regenerated.
+  const woodScale = Math.max(output.width / wood.naturalWidth, output.height / wood.naturalHeight);
+  desk.drawImage(wood, (width - wood.naturalWidth * woodScale) / 2, (output.height - wood.naturalHeight * woodScale) / 2, wood.naturalWidth * woodScale, wood.naturalHeight * woodScale);
+  const image = await toBlob();
+  return { image, preview };
 }
 
 export function downloadWordImage(file: File) {

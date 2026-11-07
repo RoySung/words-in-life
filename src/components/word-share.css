@@ -1,41 +1,81 @@
 .word-share-dialog {
-  margin: auto;
-  width: min(430px, calc(100vw - 24px));
-  max-height: calc(100dvh - 24px);
-  padding: 16px 20px 20px;
+  position: fixed;
+  inset: 0;
+  margin: 0;
+  width: 100%;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  padding: 0;
   border: 0;
-  border-radius: var(--vs-radius-md);
-  overflow-y: auto;
+  border-radius: 0;
+  overflow: hidden;
   overscroll-behavior: contain;
-  color: var(--vs-paper);
-  background: var(--vs-coffee) url('/design-system/paper-grain.png');
+  color: var(--vs-text);
+  background: transparent;
   font-family: var(--vs-font-body);
-  box-shadow: 0 24px 64px #20150f66;
+  isolation: isolate;
 }
-.word-share-dialog::backdrop { background: var(--vs-overlay-bg); }
-.word-share-dialog > header { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 44px; }
-.word-share-dialog h2 { margin: 0; font-size: 20px; font-weight: 600; line-height: 1.4; }
-.word-share-hint { margin: 4px 0 20px; font-size: 13px; color: var(--vs-paper); }
-.word-share-preview { display: block; width: 100%; height: auto; border-radius: var(--vs-radius-sm); box-shadow: var(--vs-shadow-paper); }
+.word-share-dialog::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--vs-bg) url('/design-system/share-wood.png') center / cover;
+}
+.word-share-dialog::backdrop { background: transparent; }
+.word-share-dialog > header {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  left: max(20px, env(safe-area-inset-left));
+  right: max(20px, env(safe-area-inset-right));
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  pointer-events: none;
+}
+.word-share-dialog > header button {
+  pointer-events: auto;
+  background: var(--vs-paper);
+  color: var(--vs-text);
+  border-radius: 50%;
+  box-shadow: 0 4px 12px #49311c20;
+}
+.word-share-stage {
+  position: absolute;
+  inset: calc(64px + env(safe-area-inset-top)) 0 calc(96px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.word-share-preview { display: block; width: auto; height: auto; max-width: 100%; max-height: 100%; min-height: 0; object-fit: contain; }
 .word-share-source { width: 1px; height: 1px; overflow: hidden; position: absolute; opacity: 0; pointer-events: none; }
 .word-share-source img { width: 1px; height: 1px; }
-.word-share-error { margin: 16px 0 0; padding: 12px; background: var(--vs-paper); color: var(--vs-error); border-radius: var(--vs-radius-sm); font-size: 13px; }
-.word-share-dialog > footer { display: flex; gap: 12px; padding-top: 20px; }
-.word-share-dialog > footer > button { flex: 1; min-width: 0; padding-inline: 10px; font-size: 14px; }
-/* Keep the original photo visible until the export is ready to take over. */
-.word-share-dialog.is-preparing { opacity: 0; }
-.word-share-dialog.is-preparing::backdrop { background: transparent; }
-.word-share-dialog.is-morphing { box-shadow: none; overflow: visible; background-image: none; animation: word-share-surface 520ms both; }
-.word-share-dialog.is-morphing::backdrop { animation: word-share-backdrop 520ms both; }
-.word-share-flight-paper, .word-share-flight-photo { position: fixed; pointer-events: none; margin: 0; max-width: none; max-height: none; }
-.word-share-flight-paper { z-index: 1; background: var(--vs-paper); box-shadow: var(--vs-shadow-paper); }
-.word-share-flight-photo { z-index: 2; object-fit: cover; padding: 0; visibility: visible; }
-@keyframes word-share-surface { 0%, 65% { background-color: transparent; } 100% { background-color: var(--vs-coffee); } }
-@keyframes word-share-backdrop { from { background: transparent; } to { background: var(--vs-overlay-bg); } }
-@media (prefers-reduced-motion: reduce) {
-  .word-share-dialog.is-morphing, .word-share-dialog.is-morphing::backdrop { animation: none; }
+.word-share-error { position: absolute; bottom: 0; margin: 12px 20px; padding: 12px; background: var(--vs-paper); color: var(--vs-error); border-radius: var(--vs-radius-sm); font-size: 13px; }
+.word-share-dialog > footer {
+  position: absolute;
+  z-index: 4;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  width: min(350px, calc(100% - 40px));
+  gap: 12px;
 }
-.word-share-dialog.is-returning { box-shadow: none; overflow: visible; background-image: none; animation: word-share-surface-return 280ms both; }
-.word-share-dialog.is-returning::backdrop { animation: word-share-backdrop-return 280ms both; }
-@keyframes word-share-surface-return { from { background-color: var(--vs-coffee); } to { background-color: transparent; } }
-@keyframes word-share-backdrop-return { from { background: var(--vs-overlay-bg); } to { background: transparent; } }
+.word-share-dialog > footer > button { flex: 1; min-width: 0; padding-inline: 12px; border-radius: 999px; font-size: 14px; box-shadow: 0 6px 18px #49311c26; }
+.word-share-dialog > footer > button:first-child { background: var(--vs-paper); color: var(--vs-text); }
+/* The source stays visible until the generated card is ready. */
+.word-share-dialog.is-preparing { opacity: 0; }
+.word-share-dialog.is-morphing::before { animation: word-share-desk-in 580ms both; }
+.word-share-flight-paper, .word-share-flight-photo { position: fixed; z-index: 2; pointer-events: none; margin: 0; max-width: none; max-height: none; transform-origin: center; will-change: transform, opacity; }
+.word-share-flight-paper { z-index: 1; }
+.word-share-dialog.is-returning::before { animation: word-share-desk-out 400ms linear both; }
+@keyframes word-share-desk-in { 0%, 18% { opacity: 0; } 65%, 100% { opacity: 1; } }
+@keyframes word-share-desk-out { 0%, 40% { opacity: var(--word-share-return-opacity, 1); } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .word-share-dialog.is-morphing::before, .word-share-flight-paper { z-index: 1; }
+.word-share-dialog.is-returning::before { animation: none; }
+}
