@@ -1,7 +1,7 @@
 {
   "name": "words-in-life",
   "private": true,
-  "version": "0.0.5",
+  "version": "0.0.6",
   "type": "module",
   "scripts": {
     "dev": "vite --host :: --port 3000",

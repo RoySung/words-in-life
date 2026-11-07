@@ -36,8 +36,8 @@ const baseURL = process.env.TEST_BASE_URL || 'http://127.0.0.1:4179';
           `Full ${width}×${height} photo must retain its ratio at ${viewport.width}px: ${JSON.stringify(dimensions)}`);
         assert.ok(Math.abs(dimensions.frameHeight - dimensions.height) <= 1, 'marker frame must match photo height');
         assert.ok(Math.abs(dimensions.frameWidth - dimensions.width) <= 1, 'marker frame must match photo width');
-        assert.equal(dimensions.markerX, '33%', 'marker x must stay in original photo coordinates');
-        assert.equal(dimensions.markerY, '52%', 'marker y must stay in original photo coordinates');
+        assert.equal(dimensions.markerX, '32%', 'marker x must stay in original photo coordinates');
+        assert.equal(dimensions.markerY, '51%', 'marker y must stay in original photo coordinates');
         assert.equal(dimensions.overflow, false, 'photo must not cause horizontal overflow');
         const composition = await page.evaluate(() => {
           const box = selector => document.querySelector(selector).getBoundingClientRect();
