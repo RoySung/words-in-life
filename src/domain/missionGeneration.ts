@@ -50,7 +50,7 @@ export function parseMissionDrafts(value: unknown): MissionDraft[] | null {
   return drafts;
 }
 
-export function generatedMissions(drafts: unknown, dateKey: string, words: Word[], context: MissionContext): DailyMission[] | null {
+export function generatedMissions(drafts: unknown, dateKey: string, words: Word[]): DailyMission[] | null {
   const parsed = parseMissionDrafts({ missions: drafts });
   if (!parsed) return null;
   const known = new Set(words.map(w => wordKey(w.word)));

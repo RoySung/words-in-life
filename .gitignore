@@ -9,3 +9,9 @@ coverage/
 
 test-results/
 .preview/
+
+# Local interface review screenshots
+.impeccable/review/
+
+# Generated design concepts and preview images
+output/previews/

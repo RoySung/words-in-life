@@ -315,7 +315,7 @@
             <div class="file-entry"><code>FavoritesView.tsx / WordDetailModal.tsx</code><p>收藏格狀與列表、搜尋篩選、單字詳情、前後切換、字典連結、更多用法與單字卡圖片分享。</p></div>
             <div class="file-entry"><code>FlashcardQuiz.tsx / DailyMissionSection.tsx / MissionSuccessModal.tsx</code><p>照片翻卡、每日尋寶清單與任務完成回饋。</p></div>
             <div class="file-entry"><code>SettingsView.tsx / RecognitionFailureView.tsx / AppErrorBoundary.tsx</code><p>Gemini key 設定、辨識重試與應用程式錯誤恢復。</p></div>
-            <div class="file-entry"><code>PhotoSourceModal.tsx / CameraModal.tsx / AnalyzingView.tsx / Mascot.tsx</code><p>原始照片檢視與輔助元件。CameraModal、AnalyzingView 保留在程式中，現行主流程使用 HomeView。</p></div>
+            <div class="file-entry"><code>PhotoSourceModal.tsx</code><p>原始照片檢視；相機與辨識過程由 HomeView 呈現。</p></div>
           </details>
           <details><summary><code>src/design-system/ + src/styles/</code><span class="folder-purpose">共用視覺語言</span></summary>
             <div class="file-entry"><code>tokens.css / components.tsx / components.css</code><p>奶油紙色、咖啡棕、橘色、字級與間距，以及 Button、Polaroid、Tag 等元件。</p></div>
@@ -327,9 +327,9 @@
             <div class="file-entry"><code>audio.ts / wordCategory.ts</code><p>瀏覽器語音與音效；依英文關鍵字分類，未命中時歸入其他。</p></div>
             <div class="file-entry"><code>geminiSettings.ts / errorMessage.ts</code><p>讀寫本機 Gemini key，將錯誤代碼轉成可讀的繁體中文訊息。</p></div>
           </details>
-          <details><summary><code>src/data/ + src/assets/ + public/</code><span class="folder-purpose">範例與靜態資源</span></summary>
+          <details><summary><code>src/data/ + public/</code><span class="folder-purpose">範例與靜態資源</span></summary>
             <div class="file-entry"><code>src/data/sampleScenes.ts / dailyMissions.ts / failureScenarios.ts</code><p>範例場景與單字、任務資料匯出、失敗畫面範例。</p></div>
-            <div class="file-entry"><code>src/assets/images/ / public/sample-images/</code><p>咖啡館、美食、街景與書桌照片。public 下的圖片直接以靜態路徑使用。</p></div>
+            <div class="file-entry"><code>public/sample-images/</code><p>咖啡館、美食、街景與書桌照片。public 下的圖片直接以靜態路徑使用。</p></div>
             <div class="file-entry"><code>public/design-system/ / public/docs/index.html</code><p>紙張紋理與本份互動文件；Vite 建置時會將 public 內容複製至 dist。</p></div>
           </details>
           <details><summary><code>tests/</code><span class="folder-purpose">核心契約與瀏覽器驗證</span></summary>

@@ -72,7 +72,7 @@ API key 保存在目前瀏覽器的 localStorage。照片辨識會直接將照�
 | `src/components/` | 相機、場景結果、收藏、翻卡、每日任務、設定與錯誤恢復畫面。 |
 | `src/design-system/`、`src/styles/` | 視覺 tokens、共用元件、元件目錄與應用畫面構圖。 |
 | `src/utils/` | 圖片壓縮／裁切、語音、分類、API key 與錯誤訊息工具。 |
-| `src/data/`、`src/assets/`、`public/` | 範例資料、照片、紙張紋理與互動文件。 |
+| `src/data/`、`public/` | 範例資料、照片、紙張紋理與互動文件。 |
 | `tests/` | Domain／Usecases 測試、Repository 共用契約、依賴邊界與瀏覽器整合測試。 |
 
 辨識 usecase 協調壓縮、辨識、驗證與裁切，共用 25 秒期限與取消訊號；hook 處理列印動畫、畫面切換與過期結果防護。Gemini SDK 在真實辨識或 AI 任務生成需要時才載入。模型 fallback 與暫時性錯誤重試集中於 Gemini 實作，資料庫衝突只重試提交，不重送 AI 請求。任務保存失敗時保留已辨識的場景，另顯示儲存錯誤。

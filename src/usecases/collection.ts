@@ -1,4 +1,4 @@
-import { parseItem, wordId } from '../domain/validation';
+import { parseItem } from '../domain/validation';
 import { reviewWord } from '../domain/reviews';
 import type { Word } from '../domain/vocabulary';
 import { AppError, type PreparedPhoto } from '../repository/LibraryRepository';

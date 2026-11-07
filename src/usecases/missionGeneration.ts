@@ -44,7 +44,7 @@ export function createMissionGenerationUsecases(repository: LibraryRepository, g
         detach = () => controller.signal.removeEventListener('abort', onAbort);
       });
       const drafts = await Promise.race([generator.generate(context, { signal: controller.signal }), cancelled]);
-      missions = generatedMissions(drafts, dateKey, claim.snapshot.words, context);
+      missions = generatedMissions(drafts, dateKey, claim.snapshot.words);
     } catch (cause) {
       if (cause instanceof AppError && cause.code === 'MissingCredential') fallbackReason = 'missing-key';
     } finally {
@@ -56,7 +56,7 @@ export function createMissionGenerationUsecases(repository: LibraryRepository, g
       if (getTodayDateKey(new Date(deps.now())) !== dateKey || snapshot.daily.dateKey !== dateKey ||
         active?.status !== 'generating' || active.requestId !== requestId || snapshot.daily.missions.some(m => m.isCompleted)) return null;
       // A collection edit while waiting may make a proposed new word known.
-      const finalMissions = missions && generatedMissions(missions, dateKey, snapshot.words, context);
+      const finalMissions = missions && generatedMissions(missions, dateKey, snapshot.words);
       const daily = finalMissions
         ? { ...snapshot.daily, missions: finalMissions, generation: { status: 'ready' as const, source: 'ai' as const, generatedAt: deps.now() } }
         : lockMissions({ ...snapshot.daily, missions: generateDailyMissionsForDate(dateKey, snapshot.words.map(w => w.word)) }, deps.now(), fallbackReason);

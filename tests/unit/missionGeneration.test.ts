@@ -39,16 +39,15 @@ test('mission context sends known words without review candidates and excludes i
 });
 test('generated missions require exactly three distinct objects, reasons, three unknown words and no review', () => {
   const known = [word('cup')]; const context = createMissionContext(known, '2026-10-27', 'Asia/Taipei');
-  const valid = generatedMissions(suggestions(), context.dateKey, known, context)!;
+  const valid = generatedMissions(suggestions(), context.dateKey, known)!;
   assert.equal(valid.length, 3); assert(valid.every(m => m.id.startsWith('2026-10-27_ai') && !m.isCompleted));
-  assert.equal(generatedMissions([draft('cup'), draft('umbrella'), draft('scarf')], context.dateKey, known, context), null);
-  assert.equal(generatedMissions([draft('book', 'review'), draft('umbrella'), draft('scarf')], context.dateKey, known, context), null);
-  assert.equal(generatedMissions([draft('cup', 'review'), draft('cup'), draft('scarf')], context.dateKey, known, context), null);
+  assert.equal(generatedMissions([draft('cup'), draft('umbrella'), draft('scarf')], context.dateKey, known), null);
+  assert.equal(generatedMissions([draft('book', 'review'), draft('umbrella'), draft('scarf')], context.dateKey, known), null);
+  assert.equal(generatedMissions([draft('cup', 'review'), draft('cup'), draft('scarf')], context.dateKey, known), null);
   assert.equal(parseMissionDrafts({ missions: suggestions().slice(0, 2) }), null);
   assert.equal(parseMissionDrafts({ missions: [draft('cup'), { ...draft('umbrella'), synonyms: [' CUP '] }, draft('scarf')] }), null);
   assert.equal(parseMissionDrafts({ missions: [{ ...draft('cup'), reason: '' }, draft('umbrella'), draft('scarf')] }), null);
-  const empty = createMissionContext([], context.dateKey, context.timeZone);
-  assert(generatedMissions([draft('cup'), draft('umbrella'), draft('scarf')], context.dateKey, [], empty));
+  assert(generatedMissions([draft('cup'), draft('umbrella'), draft('scarf')], context.dateKey, []));
   assert.equal(checkMissionMatch({ ...valid[0], synonyms: ['mug'] }, [parseItem({ word: 'coffee', chinese: '咖啡' })!]), null);
 });
 test('AI result is persisted once per day; conflict retries and reloads do not repeat generation', async () => {
@@ -74,7 +73,7 @@ test('simultaneous calls and two services share a durable claim before calling A
 });
 test('no key, provider errors and malformed output settle once to stable fallback', async () => {
   for (const outcome of ['MissingCredential', 'RateLimited', 'InvalidResponse', 'bad-output'] as const) {
-    const { repo, deps } = setup(); const before = structuredClone(repo.state.daily.missions); let calls = 0;
+    const { repo, deps } = setup(); let calls = 0;
     const usecases = createMissionGenerationUsecases(repo, { generate: async () => {
       calls++; if (outcome === 'bad-output') return [];
       throw new AppError(outcome);
@@ -156,8 +155,8 @@ test('fallback prefers unknown targets and aliases and fills three when the pool
   assert.deepEqual(fresh, generateDailyMissionsForDate('2026-11-04', known));
   assert.equal(generateDailyMissionsForDate('2026-11-04', known.concat(fresh.flatMap(m => [m.targetWord, ...m.synonyms]))).length, 3);
 });
-test('AI rejects known aliases even outside the bounded context', () => {
+test('AI rejects known aliases against the full collection', () => {
   const drafts = suggestions(); drafts[0].synonyms = ['cup'];
   const words = [word('cup')];
-  assert.equal(generatedMissions(drafts, '2026-11-04', words, createMissionContext([], '2026-11-04', 'UTC')), null);
+  assert.equal(generatedMissions(drafts, '2026-11-04', words), null);
 });

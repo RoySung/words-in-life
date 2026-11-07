@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { FailureReasonCode, RecognitionFailureInfo } from '../types';
+import { RecognitionFailureInfo } from '../types';
 
 export interface FailureScenarioDemo {
   id: string;

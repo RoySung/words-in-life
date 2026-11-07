@@ -1,5 +1,5 @@
 import { PhotoImage, type PhotoUrls } from '../hooks/usePhotoUrl';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { LayoutGrid, List, Search, Volume2, Trash2, Image, BookOpen } from 'lucide-react';
 import { SavedWord, DetectedItem } from '../types';
 import { speakEnglish } from '../utils/audio';
