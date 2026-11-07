@@ -7,11 +7,10 @@ coverage/
 .env*
 !.env.example
 
-test-results/
+# Local development artifacts (see README.md)
+/output/
+/test-results/
+
+# Compatibility with existing preview and review tools
 .preview/
-
-# Local interface review screenshots
 .impeccable/review/
-
-# Generated design concepts and preview images
-output/previews/

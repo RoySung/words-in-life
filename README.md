@@ -108,6 +108,21 @@ IndexedDB 資料庫 `words-in-life-storage` 將單字 metadata 與照片 Blob �
 
 ## 開發與驗證
 
+### 開發產物存放慣例
+
+| 路徑 | 用途 |
+| --- | --- |
+| `output/sketches/` | 介面草圖、概念圖與設計探索。 |
+| `output/previews/` | 臨時 HTML 示範頁、互動原型與預覽圖片。 |
+| `output/scratch/` | 一次性的驗證腳本與其他臨時檔案。 |
+| `test-results/` | 自動化測試產生的截圖、報告與除錯產物。 |
+
+`output/` 與 `test-results/` 整個目錄皆已加入 `.gitignore`，需要時才建立，可在檢視完畢後刪除。既有工具使用的 `.preview/` 與 `.impeccable/review/` 也維持忽略；新增開發產物優先使用上表路徑。
+
+草稿與臨時預覽不要放在 `public/`，因為該目錄的檔案會隨正式建置發布；`.gitignore` 不會阻止 Vite 複製公開資源。正式採用的素材才移入 `public/`，可重複執行的測試與維護腳本則放在 `tests/` 或 `scripts/`，並納入版本控制。
+
+### 開發指令
+
 | 指令 | 用途 |
 | --- | --- |
 | `npm run dev` / `npm start` | 啟動 Vite 開發伺服器，預設 port 3000。 |
