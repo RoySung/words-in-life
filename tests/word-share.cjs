@@ -21,7 +21,24 @@ const assert = require('node:assert/strict');
     await page.screenshot({ path: '/tmp/word-share-mobile.png', fullPage: true });
     const download = page.waitForEvent('download');
     await dialog.getByRole('button', { name: '儲存圖片' }).click();
-    assert.match((await download).suggestedFilename(), /words-in-life\.png$/);
+    const exported = await download;
+    assert.match(exported.suggestedFilename(), /words-in-life\.png$/);
+    await exported.saveAs('/tmp/word-share-export.png');
+    const composition = await dialog.locator('.word-share-preview').evaluate(async image => {
+      const { wordShareFrames } = await import('/src/utils/wordShareLayout.ts');
+      const bounds = image.getBoundingClientRect();
+      const frames = wordShareFrames(image);
+      const canvas = document.createElement('canvas');
+      canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
+      const ctx = canvas.getContext('2d'); ctx.drawImage(image, 0, 0);
+      return { margin: frames.paper.left - bounds.left, photoInset: frames.photo.left - bounds.left,
+        cornerAlpha: ctx.getImageData(0, 0, 1, 1).data[3],
+        fits: bounds.right <= innerWidth && bounds.left >= 0 };
+    });
+    assert.ok(composition.margin > 20, 'the Polaroid has visible desk margins');
+    assert.ok(composition.photoInset > composition.margin, 'photo flight lands within the paper');
+    assert.equal(composition.cornerAlpha, 255, 'the exported desk background is opaque');
+    assert.equal(composition.fits, true);
     await page.evaluate(() => Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => false }));
     const fallback = page.waitForEvent('download');
     await dialog.getByRole('button', { name: '分享圖片' }).click();
@@ -43,8 +60,8 @@ const assert = require('node:assert/strict');
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.getByRole('button', { name: '分享單字', exact: true }).click();
     await dialog.locator('.word-share-preview').waitFor();
-    await page.screenshot({ path: '/tmp/word-share-desktop.png', fullPage: true });
     await page.waitForFunction(() => !document.querySelector('.word-share-dialog')?.classList.contains('is-morphing') && !document.querySelector('.word-share-flight-photo'));
+    await page.screenshot({ path: '/tmp/word-share-desktop.png', fullPage: true });
     await dialog.getByRole('button', { name: '關閉分享' }).click();
     await dialog.waitFor({ state: 'detached' });
     // Keep React mounted briefly after the close helper resolves: its terminal

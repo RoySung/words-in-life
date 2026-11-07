@@ -1,3 +1,5 @@
+import { SHARE_ROTATION, wordShareFrames } from './wordShareLayout';
+
 const ease = 'cubic-bezier(.22,.7,.2,1)';
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const frame = (rect: { left: number; top: number; width: number; height: number }) => ({
@@ -21,9 +23,7 @@ export function openWordShare(dialog: HTMLDialogElement, preview: HTMLImageEleme
   if (reducedMotion() || !origin?.complete || !origin.naturalWidth) { cleanup(); return cleanup; }
   const from = origin.getBoundingClientRect();
   if (!from.width || !from.height || from.bottom < 0 || from.top > window.innerHeight) { cleanup(); return cleanup; }
-  const to = preview.getBoundingClientRect();
-  const scale = to.width / 1080;
-  const photoTo = { left: to.left + 56 * scale, top: to.top + 56 * scale, width: 968 * scale, height: 968 * scale };
+  const { paper: to, photo: photoTo } = wordShareFrames(preview);
   const paper = document.createElement('div');
   paper.className = 'word-share-flight-paper';
   const photo = origin.cloneNode() as HTMLImageElement;
@@ -41,12 +41,12 @@ export function openWordShare(dialog: HTMLDialogElement, preview: HTMLImageEleme
   const photoAnimation = animate(photo, [
     { ...frame(from), transform: 'rotate(-3deg)' },
     { ...frame({ ...from, top: from.top - 8 }), transform: 'rotate(-3deg)', offset: .18 },
-    { ...frame(photoTo), transform: 'rotate(0)' },
+    { ...frame(photoTo), transform: `rotate(${SHARE_ROTATION}deg)` },
   ], 520);
   animate(paper, [
     { ...frame(paperFrom), transform: 'rotate(-3deg)' },
     { ...frame({ ...paperFrom, top: paperFrom.top - 8 }), transform: 'rotate(-3deg)', offset: .18 },
-    { ...frame(to), transform: 'rotate(0)' },
+    { ...frame(to), transform: `rotate(${SHARE_ROTATION}deg)` },
   ], 520);
   for (const element of dialog.querySelectorAll('header, .word-share-hint, footer')) {
     animate(element, [{ opacity: 0 }, { opacity: 1 }], 160, 360);
@@ -65,10 +65,8 @@ export async function closeWordShare(dialog: HTMLDialogElement, origin?: HTMLIma
     finally { dialog.close(); fade.cancel(); }
     return;
   }
-  const from = preview.getBoundingClientRect();
+  const { paper: from, photo: photoFrom } = wordShareFrames(preview);
   const to = origin.getBoundingClientRect();
-  const scale = from.width / 1080;
-  const photoFrom = { left: from.left + 56 * scale, top: from.top + 56 * scale, width: 968 * scale, height: 968 * scale };
   const paper = document.createElement('div'); paper.className = 'word-share-flight-paper';
   const photo = origin.cloneNode() as HTMLImageElement;
   photo.removeAttribute('style'); photo.removeAttribute('class'); photo.removeAttribute('id');
@@ -85,8 +83,8 @@ export async function closeWordShare(dialog: HTMLDialogElement, origin?: HTMLIma
   for (const element of dialog.querySelectorAll('header, .word-share-hint, footer, .word-share-preview, .word-share-error')) {
     animate(element, [{ opacity: 1 }, { opacity: 0 }], 140);
   }
-  animate(paper, [{ ...frame(from), transform: 'rotate(0)' }, { ...frame({ left: to.left - 10, top: to.top - 10, width: to.width + 20, height: to.height + 30 }), transform: 'rotate(-3deg)' }], 280);
-  const travel = animate(photo, [{ ...frame(photoFrom), transform: 'rotate(0)' }, { ...frame(to), transform: 'rotate(-3deg)' }], 280);
+  animate(paper, [{ ...frame(from), transform: `rotate(${SHARE_ROTATION}deg)` }, { ...frame({ left: to.left - 10, top: to.top - 10, width: to.width + 20, height: to.height + 30 }), transform: 'rotate(-3deg)' }], 280);
+  const travel = animate(photo, [{ ...frame(photoFrom), transform: `rotate(${SHARE_ROTATION}deg)` }, { ...frame(to), transform: 'rotate(-3deg)' }], 280);
   try { await travel.finished; } catch { /* Unmount may cancel the animation. */ }
   finally {
     // Leave the top layer before cancelling fill effects. React may unmount

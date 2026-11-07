@@ -16,7 +16,7 @@
 .word-share-dialog > header { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 44px; }
 .word-share-dialog h2 { margin: 0; font-size: 20px; font-weight: 600; line-height: 1.4; }
 .word-share-hint { margin: 4px 0 20px; font-size: 13px; color: var(--vs-paper); }
-.word-share-preview { display: block; width: 100%; height: auto; border-radius: 2px; box-shadow: var(--vs-shadow-paper); }
+.word-share-preview { display: block; width: 100%; height: auto; border-radius: var(--vs-radius-sm); box-shadow: var(--vs-shadow-paper); }
 .word-share-source { width: 1px; height: 1px; overflow: hidden; position: absolute; opacity: 0; pointer-events: none; }
 .word-share-source img { width: 1px; height: 1px; }
 .word-share-error { margin: 16px 0 0; padding: 12px; background: var(--vs-paper); color: var(--vs-error); border-radius: var(--vs-radius-sm); font-size: 13px; }
