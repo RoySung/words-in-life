@@ -1,6 +1,7 @@
 import { GoogleGenAI, type GenerateContentParameters } from '@google/genai';
 import { record } from '../../domain/validation';
 import { AppError } from '../LibraryRepository';
+import { redactDiagnosticText } from '../../utils/errorDiagnostics';
 
 export const GEMINI_MODELS = ['gemini-3.1-flash-lite', 'gemini-3.8-flash', 'gemini-flash-latest'];
 export async function generateGeminiJson(getKey: () => string, request: Omit<GenerateContentParameters, 'model'>,
@@ -22,9 +23,10 @@ export async function generateGeminiJson(getKey: () => string, request: Omit<Gen
       if (cause instanceof AppError) throw cause;
       const status = record(cause) ? Number(cause.status) : 0;
       if (status === 404 && modelIndex + 1 < models.length) { modelIndex++; continue; }
-      if (status === 401 || status === 403) throw new AppError('Unauthorized');
-      if (status === 400) throw new AppError('InvalidInput');
-      if (status === 429) throw new AppError('RateLimited');
+      const detail = Object.assign(new Error(redactDiagnosticText(cause instanceof Error ? cause.message : 'Provider request failed', [key])), { name: cause instanceof Error ? cause.name : 'ProviderError', status });
+      if (status === 401 || status === 403) throw new AppError('Unauthorized', undefined, { cause: detail });
+      if (status === 400) throw new AppError('InvalidInput', undefined, { cause: detail });
+      if (status === 429) throw new AppError('RateLimited', undefined, { cause: detail });
       if ((!status || status >= 500 || status === 408) && transientRetries++ === 0) {
         await new Promise<void>((resolve, reject) => {
           const finish = () => { signal.removeEventListener('abort', cancel); resolve(); };
@@ -35,7 +37,7 @@ export async function generateGeminiJson(getKey: () => string, request: Omit<Gen
         });
         continue;
       }
-      throw new AppError('Unavailable', undefined, { cause });
+      throw new AppError('Unavailable', undefined, { cause: detail });
     }
   }
   throw new AppError('Unavailable');

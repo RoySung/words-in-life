@@ -173,6 +173,11 @@
 .failure-message { margin: 28px 0; }
 .failure-message h1 { font-size: 24px; font-weight: 700; margin-bottom: 16px; }
 .failure-message p, .failure-message li { font-size: 14px; color: var(--vs-muted); }
+.failure-message-trigger { display: block; width: 100%; text-align: left; font: inherit; color: inherit; background: none; border: 0; padding: 0; }
+.failure-diagnostics { margin: 24px 0; min-width: 0; }
+.failure-diagnostics h2 { font-size: 16px; margin-bottom: 12px; }
+.failure-diagnostics pre { max-height: 320px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; padding: 16px; background: var(--vs-cream); color: var(--vs-coffee); font-size: 12px; border-radius: 6px; }
+.failure-diagnostics [role="status"] { font-size: 14px; margin: 8px 0; }
 .failure-message ul { padding-left: 20px; list-style: disc; margin-top: 16px; }
 .failure-message li { margin: 8px 0; }
 .stack-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }

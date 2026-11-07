@@ -3,8 +3,8 @@ import { flushSync } from 'react-dom';
 import type { AnalysisResult, DailyMission, RecognitionFailureInfo, SampleScene } from '../../types';
 import { playSfx } from '../../utils/audio';
 import type { RecognitionUsecases } from '../../usecases/recognition';
-import { AppError } from '../../repository/LibraryRepository';
-import { errorMessage } from '../../utils/errorMessage';
+import { recognitionFailure } from './failure';
+import { readGeminiKey } from '../../utils/geminiSettings';
 
 type RecognitionState =
   | { kind: 'idle' }
@@ -63,13 +63,8 @@ export function useRecognition(usecases: RecognitionUsecases) {
       if (active()) playSfx('success');
     } catch (cause) {
       if (!active()) return;
-      const timedOut = cause instanceof AppError && cause.code === 'Timeout';
       await finish({ kind: 'failure', failure: {
-        reasonCode: timedOut ? 'NETWORK_ERROR' : 'GENERIC_ERROR',
-        title: timedOut ? '辨識連線逾時，網路不穩定' : '辨識服務暫時中斷',
-        description: timedOut ? '照片上傳或分析耗時過久，請檢查連線後重試。' : errorMessage(cause),
-        photoUrl: imageUrl, activeQuestTarget: quest,
-        suggestions: ['檢查 Wi-Fi 或行動網路連線', '重新辨識本圖', '試試生活範例場景'],
+        ...recognitionFailure(cause, imageUrl, [readGeminiKey()]), activeQuestTarget: quest,
       } });
     } finally {
       clearTimeout(printTimer!);

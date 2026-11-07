@@ -98,7 +98,10 @@ function Application({ store }: { store: ReturnType<typeof useLibrary> }) {
     if (!navigator.onLine) { setInputError('目前離線，照片辨識需要網路。你仍可開啟我的單字，查看收藏與選擇題複習。'); return; }
     const key = readGeminiKey(); setGeminiKey(key);
     if (!key) {
-      setSettingsNotice('請先設定 Gemini API key，再回到首頁選擇或拍攝照片。'); navigate('settings'); return;
+      setSettingsNotice(currentFailureInfo ? '請先設定 Gemini API key，再返回辨識結果重試原照片。' : '請先設定 Gemini API key，再回到首頁選擇或拍攝照片。');
+      if (currentFailureInfo) setNavigation('settings');
+      else navigate('settings');
+      return;
     }
     setNavigation('home'); setCompletedMissionCelebration(null); setInputError('');
     void recognition.run({ imageUrl, fromCamera, quest: activeQuestTarget, onResult: acceptResult });
@@ -125,7 +128,11 @@ function Application({ store }: { store: ReturnType<typeof useLibrary> }) {
   return (
     <div className="vs-theme words-in-life-app">
       {(store.error || inputError) && <div className="storage-notice" role="alert"><p>{store.error || inputError}</p>{store.error && <button onClick={store.dismissError}>知道了</button>}</div>}
-      {activeView === 'settings' && <SettingsView apiKey={geminiKey} notice={settingsNotice} onBack={() => navigate('home')} onSave={key => { saveGeminiKey(key); setGeminiKey(key); setSettingsNotice(''); }} />}
+      {activeView === 'settings' && <SettingsView apiKey={geminiKey} notice={settingsNotice}
+        backLabel={currentFailureInfo ? '返回辨識結果' : undefined}
+        savedMessage={currentFailureInfo ? '已儲存 API key，可以返回辨識結果重試原照片。' : undefined}
+        onBack={() => currentFailureInfo ? setNavigation('home') : navigate('home')}
+        onSave={key => { saveGeminiKey(key); setGeminiKey(key); setSettingsNotice(''); }} />}
       {/* View 1: Home Screen */}
       {(activeView === 'home' || (activeView === 'analyzing' && !!printingImage)) && (
         <HomeView
@@ -192,6 +199,7 @@ function Application({ store }: { store: ReturnType<typeof useLibrary> }) {
       {activeView === 'failure' && currentFailureInfo && (
         <RecognitionFailureView
           failureInfo={currentFailureInfo}
+          onOpenSettings={() => { setSettingsNotice(''); setNavigation('settings'); }}
           onBack={() => {
             setActiveQuestTarget(null);
             setMissedQuestTarget(null);

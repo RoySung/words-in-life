@@ -63,11 +63,11 @@ const home = page => page.getByRole('button', { name: /^我的單字/ }).waitFor
     await retry.locator('input[type=file]').setInputFiles('public/sample-images/cafe_scene.jpg');
     await retry.getByRole('heading', { name: '第一張回應' }).waitFor();
     await retry.locator('input[type=file]').setInputFiles('public/sample-images/food_scene.jpg');
-    await retry.getByRole('heading', { name: '辨識服務暫時中斷' }).waitFor();
+    await retry.getByRole('heading', { name: '無法使用辨識服務' }).waitFor();
     const expected = 'data:image/jpeg;base64,' + fs.readFileSync('public/sample-images/food_scene.jpg').toString('base64');
     assert.equal(await retry.getByAltText('未能順利辨識的照片').getAttribute('src'), expected);
     await retry.getByRole('button', { name: '重新辨識本圖' }).click();
-    await retry.getByRole('heading', { name: '辨識服務暫時中斷' }).waitFor();
+    await retry.getByRole('heading', { name: '無法使用辨識服務' }).waitFor();
     assert.notEqual(payloads[0], payloads[1]); assert.equal(payloads[1], payloads[2]);
     await retry.close();
     // Date rollover runs in an already-open page, without a reload.

@@ -101,6 +101,8 @@ export type FailureReasonCode =
   | 'GENERIC_ERROR';
 
 export interface RecognitionFailureInfo {
+  recovery?: 'retry' | 'settings';
+  diagnostics?: string;
   reasonCode: FailureReasonCode;
   title: string;
   description: string;

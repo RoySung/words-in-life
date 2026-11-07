@@ -8,9 +8,11 @@ interface SettingsViewProps {
   notice: string;
   onSave: (key: string) => void;
   onBack: () => void;
+  backLabel?: string;
+  savedMessage?: string;
 }
 
-export function SettingsView({ apiKey, notice, onSave, onBack }: SettingsViewProps) {
+export function SettingsView({ apiKey, notice, onSave, onBack, backLabel = '返回首頁', savedMessage = '已儲存 API key，可以返回首頁辨識照片。' }: SettingsViewProps) {
   const [draft, setDraft] = useState(apiKey);
   const [visible, setVisible] = useState(false);
   const [message, setMessage] = useState('');
@@ -24,14 +26,14 @@ export function SettingsView({ apiKey, notice, onSave, onBack }: SettingsViewPro
       setDraft(key);
       setVisible(false);
       setError('');
-      setMessage(clear ? '已清除 API key。下次辨識照片前，請先設定。' : '已儲存 API key，可以返回首頁辨識照片。');
+      setMessage(clear ? '已清除 API key。下次辨識照片前，請先設定。' : savedMessage);
     } catch {
       setError('瀏覽器無法儲存設定，請允許網站儲存資料後再試一次。');
       setMessage('');
     }
   };
   return <div className="app-page settings-page">
-    <header className="page-header"><IconButton label="返回首頁" onClick={onBack}><ArrowLeft /></IconButton><h1>設定</h1><span aria-hidden="true" className="settings-header-spacer" /></header>
+    <header className="page-header"><IconButton label={backLabel} onClick={onBack}><ArrowLeft /></IconButton><h1>設定</h1><span aria-hidden="true" className="settings-header-spacer" /></header>
     <main>
       <section aria-labelledby="gemini-heading">
         <div className="settings-title"><h2 id="gemini-heading">Gemini API key</h2><Tag tone={apiKey ? 'blue' : 'neutral'}>{apiKey ? '已設定' : '尚未設定'}</Tag></div>
