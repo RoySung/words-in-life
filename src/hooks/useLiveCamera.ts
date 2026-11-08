@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-
-const CAMERA_RATIO = 3 / 4;
+import { CAMERA_RATIO, captureCameraPhoto } from '../utils/captureCameraPhoto';
 
 /** Own the stream for one visible camera surface; stale permission results are stopped. */
 export function useLiveCamera(enabled = true) {
@@ -12,6 +11,8 @@ export function useLiveCamera(enabled = true) {
   const [visible, setVisible] = useState(() => !document.hidden);
   const [status, setStatus] = useState<'starting' | 'ready' | 'error'>('starting');
   const [error, setError] = useState('');
+  const [capturing, setCapturing] = useState(false);
+  const captureRef = useRef<AbortController | null>(null);
   useEffect(() => {
     const preview = previewRef.current;
     if (!preview) return;
@@ -33,13 +34,14 @@ export function useLiveCamera(enabled = true) {
     const video = videoRef.current;
     setStatus('starting');
     setError('');
+    setCapturing(false);
     if (!visible || !enabled) return;
     setZoom(1);
     const ended = () => { if (!disposed) { setStatus('error'); setError('相機已中斷，請重新開啟或選擇照片。'); } };
     (async () => {
       try {
         if (!navigator.mediaDevices?.getUserMedia) throw new Error('unavailable');
-        const next = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1440 }, height: { ideal: 1920 }, aspectRatio: { ideal: CAMERA_RATIO } }, audio: false });
+        const next = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 2560 }, aspectRatio: { ideal: CAMERA_RATIO } }, audio: false });
         if (disposed) { next.getTracks().forEach(t => t.stop()); return; }
         stream = next;
         next.getVideoTracks().forEach(t => t.addEventListener('ended', ended));
@@ -55,24 +57,31 @@ export function useLiveCamera(enabled = true) {
     })();
     return () => {
       disposed = true;
+      captureRef.current?.abort();
+      captureRef.current = null;
       stream?.getTracks().forEach(t => { t.removeEventListener('ended', ended); t.stop(); });
       if (video) video.srcObject = null;
     };
   }, [attempt, visible, enabled]);
-  const capture = () => {
+  const capture = async () => {
     const video = videoRef.current;
-    if (status !== 'ready' || !video?.videoWidth || video.readyState < 2) return null;
-    const canvas = document.createElement('canvas');
-    // Match the centered object-fit: cover preview even when a camera ignores the preferred ratio.
-    const sourceWidth = Math.min(video.videoWidth, video.videoHeight * CAMERA_RATIO) / zoom;
-    const sourceHeight = sourceWidth / CAMERA_RATIO;
-    canvas.width = Math.max(1, Math.round(sourceWidth));
-    canvas.height = Math.max(1, Math.round(sourceHeight));
-    const context = canvas.getContext('2d');
-    if (!context) return null;
-    context.drawImage(video, (video.videoWidth - sourceWidth) / 2, (video.videoHeight - sourceHeight) / 2,
-      sourceWidth, sourceHeight, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL('image/jpeg', .88);
+    const track = (video?.srcObject as MediaStream | null)?.getVideoTracks()[0];
+    if (!enabled || document.hidden || captureRef.current || status !== 'ready' || !video?.videoWidth
+      || video.readyState < 2 || track?.readyState !== 'live') return null;
+    const controller = new AbortController();
+    captureRef.current = controller;
+    setCapturing(true);
+    try {
+      const image = await captureCameraPhoto(video, track, zoom, controller.signal);
+      return track.readyState === 'live' ? image : null;
+    } catch {
+      return null;
+    } finally {
+      if (captureRef.current === controller) {
+        captureRef.current = null;
+        setCapturing(false);
+      }
+    }
   };
   // Keep the capture frame at 3:4; zoom clips within this frame without enlarging its letterbox.
   const previewWidth = Math.min(previewBounds.width, previewBounds.height * CAMERA_RATIO);
@@ -82,5 +91,5 @@ export function useLiveCamera(enabled = true) {
     if (!video?.videoWidth || !video.videoHeight) return;
     if (video.readyState >= 2) setStatus('ready');
   };
-  return { videoRef, previewRef, previewStyle, zoom, setZoom, status, error, capture, retry: () => setAttempt(n => n + 1), onReady };
+  return { videoRef, previewRef, previewStyle, zoom, setZoom, status, error, capturing, capture, retry: () => setAttempt(n => n + 1), onReady };
 }

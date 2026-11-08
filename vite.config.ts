@@ -19,6 +19,7 @@ export default defineConfig(() => {
     server: {
       // Dual-stack binding avoids separate IPv4/IPv6 servers sharing localhost.
       host: '::',
+      allowedHosts: ['.ngrok-free.app'],
       port: 3000,
       strictPort: false,
       hmr: process.env.DISABLE_HMR !== 'true',
