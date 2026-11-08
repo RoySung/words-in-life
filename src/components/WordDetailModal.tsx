@@ -2,7 +2,8 @@ import { type PhotoUrls } from '../hooks/usePhotoUrl';
 import React, { useState, useId, useRef } from 'react';
 import { ChevronLeft, Volume2, Eye, ChevronDown, Copy, ExternalLink, Share2 } from 'lucide-react';
 import { DetectedItem } from '../types';
-import { Button, IconButton, Polaroid, Tag } from '../design-system/components';
+import { Button, IconButton, Tag } from '../design-system/components';
+import { WordDetailPhoto } from './WordDetailPhoto';
 import { Bookmark, ChevronRight } from 'lucide-react';
 import { WordShareModal } from './WordShareModal';
 import { PhotoSourceModal } from './PhotoSourceModal';
@@ -84,7 +85,7 @@ export const WordDetailModal: React.FC<WordDetailModalProps> = ({
   return <dialog ref={dialogRef} className={`word-dialog vs-surface-dark word-detail-dialog ${more ? "is-expanded" : ""}`} aria-label={`${item.word} 單字詳情`}>
     <header className="page-header"><IconButton label="關閉單字詳情" onClick={onClose}><ChevronLeft /></IconButton><span /><IconButton label={isSaved ? '移除收藏' : '收藏單字'} aria-pressed={isSaved} onClick={onToggleSave}><Bookmark fill={isSaved ? 'currentColor' : 'none'} /></IconButton></header>
     {storageError && <p role="alert" className="vs-error">{storageError}</p>}
-    <main><article className="word-detail-paper"><Polaroid photo={item.crop || item.photo} urls={photoUrls} src={item.stickerUrl} fallbackPhoto={item.photo} fallbackSrc={source} alt={item.chinese} taped className="detail-polaroid" />
+    <main><article className="word-detail-paper"><WordDetailPhoto item={item} photoUrls={photoUrls} sceneSource={source} sharing={isShareOpen} />
       <div className="word-detail-content">
       <div className="detail-word"><h1 lang="en">{item.word}</h1><div className="word-tools"><IconButton label="播放單字發音" disabled={isPlayingAudio} onClick={() => handlePlayWord()}><Volume2 /></IconButton><IconButton label="分享單字" onClick={() => { shareOrigin.current = dialogRef.current?.querySelector<HTMLImageElement>('.detail-polaroid img') ?? null; setIsShareOpen(true); }}><Share2 /></IconButton><IconButton label="複製單字" disabled={isCopying} onClick={handleCopyWord}><Copy /></IconButton></div></div>
       <span className="word-copy-status" role="status">{copyStatus}</span>

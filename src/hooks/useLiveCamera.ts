@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { CAMERA_RATIO, captureCameraPhoto } from '../utils/captureCameraPhoto';
+import { standardRearCameraId } from '../utils/cameraDevice';
 
 /** Own the stream for one visible camera surface; stale permission results are stopped. */
 export function useLiveCamera(enabled = true) {
@@ -41,9 +42,27 @@ export function useLiveCamera(enabled = true) {
     (async () => {
       try {
         if (!navigator.mediaDevices?.getUserMedia) throw new Error('unavailable');
-        const next = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 2560 }, aspectRatio: { ideal: CAMERA_RATIO } }, audio: false });
+        const constraints = { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 2560 }, aspectRatio: { ideal: CAMERA_RATIO } };
+        let next = await navigator.mediaDevices.getUserMedia({ video: constraints, audio: false });
         if (disposed) { next.getTracks().forEach(t => t.stop()); return; }
         stream = next;
+        // Permission reveals device labels. Choose one physical rear lens before displaying
+        // the preview so a virtual multi-lens camera cannot auto-switch for close-up focus.
+        let deviceId: string | undefined;
+        try { deviceId = standardRearCameraId(await navigator.mediaDevices.enumerateDevices()); }
+        catch { /* Device discovery is optional; retain the working default stream. */ }
+        if (disposed) return;
+        if (deviceId && next.getVideoTracks()[0]?.getSettings().deviceId !== deviceId) {
+          next.getTracks().forEach(t => t.stop());
+          try {
+            next = await navigator.mediaDevices.getUserMedia({ video: { ...constraints, deviceId: { exact: deviceId } }, audio: false });
+          } catch {
+            if (disposed) return;
+            next = await navigator.mediaDevices.getUserMedia({ video: constraints, audio: false });
+          }
+          if (disposed) { next.getTracks().forEach(t => t.stop()); return; }
+          stream = next;
+        }
         next.getVideoTracks().forEach(t => t.addEventListener('ended', ended));
         if (video) { video.srcObject = next; await video.play(); }
       } catch (cause) {
@@ -72,8 +91,8 @@ export function useLiveCamera(enabled = true) {
     captureRef.current = controller;
     setCapturing(true);
     try {
-      const image = await captureCameraPhoto(video, track, zoom, controller.signal);
-      return track.readyState === 'live' ? image : null;
+      const image = await captureCameraPhoto(video, zoom, controller.signal);
+      return !controller.signal.aborted && track.readyState === 'live' ? image : null;
     } catch {
       return null;
     } finally {

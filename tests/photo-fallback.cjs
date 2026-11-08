@@ -54,7 +54,7 @@ const baseURL = process.env.TEST_BASE_URL || 'http://127.0.0.1:4179';
       await page.waitForFunction(() => { const img = document.querySelector('.fallback-fixture .detail-polaroid > img'); return img?.complete && img.naturalWidth > 0; });
       await image.evaluate(img => img.decode());
       const reads = await page.evaluate(() => window.photoReads);
-      assert.deepEqual(reads, mode === 'url-missing' ? [] : mode === 'stored-good' ? ['good'] : [mode.slice(7), 'original'], 'original storage should be read only after crop failure');
+      assert.deepEqual(reads, mode === 'url-missing' ? [] : mode === 'stored-good' ? ['good', 'original'] : [mode.slice(7), 'original'], 'detail loads the original for a high-resolution upgrade while retaining crop fallback');
       assert.equal(await fixture.locator('.photo-unavailable').count(), 0);
     }
     // Reuse the component while changing sources, including recovery after total failure.

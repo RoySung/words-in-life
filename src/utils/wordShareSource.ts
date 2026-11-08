@@ -6,8 +6,8 @@ import { loadImage } from './loadImage';
 import { drawObjectCrop } from './stickerGenerator';
 import { SHARE_PHOTO_SIZE } from './wordShareLayout';
 
-/** Rebuild the existing crop at export resolution; old crop-only records still work. */
-export async function createWordSharePhoto(item: DetectedItem, urls?: PhotoUrls, sceneSource?: string, signal?: AbortSignal): Promise<string> {
+/** Rebuild the existing object crop from its original; old crop-only records still work. */
+export async function createWordPhoto(item: DetectedItem, urls?: PhotoUrls, sceneSource?: string, signal?: AbortSignal, size = SHARE_PHOTO_SIZE): Promise<string> {
   const boundingBox = parseBoundingBox(item.boundingBox);
   const originals: { photo?: PhotoRef; source?: string; original: boolean }[] = [
     { photo: item.photo, original: true },
@@ -38,8 +38,8 @@ export async function createWordSharePhoto(item: DetectedItem, urls?: PhotoUrls,
       }
       const image = await loadImage(source!, signal);
       const canvas = document.createElement('canvas');
-      canvas.width = candidate.original ? SHARE_PHOTO_SIZE : image.naturalWidth;
-      canvas.height = candidate.original ? SHARE_PHOTO_SIZE : image.naturalHeight;
+      canvas.width = candidate.original ? size : image.naturalWidth;
+      canvas.height = candidate.original ? size : image.naturalHeight;
       const context = canvas.getContext('2d');
       if (!context) throw new Error('無法裁切分享照片');
       if (candidate.original) drawObjectCrop(image, context, canvas.width, boundingBox);
@@ -52,3 +52,5 @@ export async function createWordSharePhoto(item: DetectedItem, urls?: PhotoUrls,
   }
   throw new Error('無法讀取分享照片');
 }
+
+export const createWordSharePhoto = createWordPhoto;
