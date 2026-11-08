@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { Download, Share2, X } from 'lucide-react';
 import type { DetectedItem } from '../types';
-import { PhotoImage, type PhotoUrls } from '../hooks/usePhotoUrl';
+import type { PhotoUrls } from '../hooks/usePhotoUrl';
 import { useDialog } from '../hooks/useDialog';
 import { Button, IconButton } from '../design-system/components';
 import { createWordShareImage, downloadWordImage } from '../utils/wordShare';
 import { openWordShare, closeWordShare } from '../utils/wordShareMotion';
+import { createWordSharePhoto } from '../utils/wordShareSource';
 import './word-share.css';
 
 export function WordShareModal({ item, photoUrls, imageUrl, onClose, originPhoto }: {
@@ -26,9 +27,17 @@ export function WordShareModal({ item, photoUrls, imageUrl, onClose, originPhoto
   const [error, setError] = useState('');
   const [sharing, setSharing] = useState(false);
   const [previewReady, setPreviewReady] = useState(false);
+  const [photoSource, setPhotoSource] = useState<string>();
   const active = useRef(true);
   const started = useRef(false);
   useEffect(() => { active.current = true; return () => { active.current = false; }; }, []);
+  useEffect(() => {
+    const controller = new AbortController();
+    void createWordSharePhoto(item, photoUrls, imageUrl, controller.signal)
+      .then(source => { if (!controller.signal.aborted) setPhotoSource(source); })
+      .catch(() => { if (!controller.signal.aborted) setError('無法讀取分享照片，請關閉後重試。'); });
+    return () => controller.abort();
+  }, [item, photoUrls, imageUrl]);
   useEffect(() => {
     if (result || error) return;
     const timer = window.setTimeout(() => setError('照片載入逾時，請關閉後重試。'), 20_000);
@@ -61,7 +70,7 @@ export function WordShareModal({ item, photoUrls, imageUrl, onClose, originPhoto
   return <dialog ref={dialog} className={`word-share-dialog ${!error && !previewReady ? 'is-preparing' : ''}`} aria-label="分享單字">
     <header><IconButton label="關閉分享" onClick={() => void requestClose()}><X /></IconButton></header>
     <div className="word-share-stage">
-    {!result && <div className="word-share-source" aria-hidden="true"><PhotoImage photo={item.crop || item.photo} urls={photoUrls} src={item.stickerUrl} fallbackPhoto={item.photo} fallbackSrc={item.originalImageUrl || imageUrl} crossOrigin="anonymous" alt="" onLoad={event => { void generate(event.currentTarget); }} /></div>}
+    {!result && photoSource && <div className="word-share-source" aria-hidden="true"><img src={photoSource} crossOrigin="anonymous" alt="" onError={() => setError('無法讀取分享照片，請關閉後重試。')} onLoad={event => { void generate(event.currentTarget); }} /></div>}
     {result ? <img className="word-share-preview" src={result.previewUrl} onError={() => setError('預覽載入失敗，請關閉後重試。')} onLoad={event => { setPreviewReady(true); if (dialog.current) motionCleanup.current = openWordShare(dialog.current, event.currentTarget, originPhoto); }} alt={`${item.word}，${item.chinese}，分享圖片預覽`} /> : !error && <p role="status">正在產生分享圖片…</p>}
     {error && <p className="word-share-error" role="alert">{error}</p>}
     </div>

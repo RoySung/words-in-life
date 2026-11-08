@@ -2,6 +2,7 @@
 export const SHARE_CARD_SCALE = .76;
 export const SHARE_DESK_MARGIN = 140;
 export const SHARE_ROTATION = -3;
+export const SHARE_PHOTO_SIZE = 968;
 
 export function wordShareFrames(preview: HTMLImageElement) {
   const bounds = preview.getBoundingClientRect();
@@ -15,6 +16,6 @@ export function wordShareFrames(preview: HTMLImageElement) {
   };
   return {
     paper: rect(0, 0, 1080 * SHARE_CARD_SCALE, cardHeight),
-    photo: rect(0, -cardHeight / 2 + 540 * SHARE_CARD_SCALE, 968 * SHARE_CARD_SCALE, 968 * SHARE_CARD_SCALE),
+    photo: rect(0, -cardHeight / 2 + 540 * SHARE_CARD_SCALE, SHARE_PHOTO_SIZE * SHARE_CARD_SCALE, SHARE_PHOTO_SIZE * SHARE_CARD_SCALE),
   };
 }

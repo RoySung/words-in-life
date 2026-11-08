@@ -4,7 +4,7 @@ import type { BoundingBox } from '../domain/vocabulary';
 import { parseBoundingBox } from '../domain/validation';
 
 /** Fit the whole padded object into a square; unknown bounds retain the full scene. */
-function crop(image: HTMLImageElement, boundingBox?: BoundingBox): string {
+export function drawObjectCrop(image: HTMLImageElement, context: CanvasRenderingContext2D, size: number, boundingBox?: BoundingBox): void {
   const width = image.naturalWidth;
   const height = image.naturalHeight;
   const box = parseBoundingBox(boundingBox) || { left: 0, top: 0, right: 100, bottom: 100 };
@@ -14,16 +14,20 @@ function crop(image: HTMLImageElement, boundingBox?: BoundingBox): string {
   const y = Math.max(0, box.top - padY) / 100 * height;
   const cropWidth = Math.min(width, (box.right + padX) / 100 * width) - x;
   const cropHeight = Math.min(height, (box.bottom + padY) / 100 * height) - y;
-  const canvas = document.createElement('canvas'); canvas.width = 280; canvas.height = 280;
-  const context = canvas.getContext('2d');
-  if (!context) throw new Error('無法裁切照片');
   context.fillStyle = '#fff9ef';
-  context.fillRect(0, 0, canvas.width, canvas.height);
-  const scale = Math.min(canvas.width / cropWidth, canvas.height / cropHeight);
+  context.fillRect(0, 0, size, size);
+  const scale = Math.min(size / cropWidth, size / cropHeight);
   const outputWidth = cropWidth * scale;
   const outputHeight = cropHeight * scale;
   context.drawImage(image, x, y, cropWidth, cropHeight,
-    (canvas.width - outputWidth) / 2, (canvas.height - outputHeight) / 2, outputWidth, outputHeight);
+    (size - outputWidth) / 2, (size - outputHeight) / 2, outputWidth, outputHeight);
+}
+
+function crop(image: HTMLImageElement, boundingBox?: BoundingBox): string {
+  const canvas = document.createElement('canvas'); canvas.width = 280; canvas.height = 280;
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('無法裁切照片');
+  drawObjectCrop(image, context, canvas.width, boundingBox);
   return canvas.toDataURL('image/jpeg', .9);
 }
 

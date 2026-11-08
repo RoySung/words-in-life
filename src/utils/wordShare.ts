@@ -1,5 +1,5 @@
 import type { DetectedItem } from '../types';
-import { SHARE_CARD_SCALE, SHARE_DESK_MARGIN, SHARE_ROTATION } from './wordShareLayout';
+import { SHARE_CARD_SCALE, SHARE_DESK_MARGIN, SHARE_ROTATION, SHARE_PHOTO_SIZE } from './wordShareLayout';
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -48,7 +48,7 @@ export async function createWordShareImage(item: DetectedItem, photo: HTMLImageE
   ctx.fillStyle = token('--vs-paper', '#fff9ef'); ctx.fillRect(0, 0, width, canvas.height);
   const paperGrain = ctx.createPattern(grain, 'repeat');
   if (paperGrain) { ctx.fillStyle = paperGrain; ctx.fillRect(0, 0, width, canvas.height); }
-  const size = 968;
+  const size = SHARE_PHOTO_SIZE;
   const scale = Math.max(size / photo.naturalWidth, size / photo.naturalHeight);
   ctx.save(); ctx.beginPath(); ctx.rect(56, 56, size, size); ctx.clip();
   ctx.drawImage(photo, 56 + (size - photo.naturalWidth * scale) / 2, 56 + (size - photo.naturalHeight * scale) / 2, photo.naturalWidth * scale, photo.naturalHeight * scale);

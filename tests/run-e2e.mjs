@@ -18,7 +18,7 @@ try {
     if (!ready) throw new Error('Test server did not start');
   }
   let failed = 0;
-  for (const script of ['word-share.cjs', 'startup-transition.cjs', 'settings-flow.cjs', 'camera-flow.cjs', 'camera-photo-content.cjs', 'camera-zoom.cjs', 'home-rwd.cjs', 'ui-smoke.cjs', 'quiz-motion.cjs', 'photo-transitions.cjs', 'scene-photo.cjs', 'recognition-presentation.cjs', 'object-crops.cjs', 'photo-fallback.cjs', 'reliability-flow.cjs', 'recognition-errors.cjs', 'storage-flow.cjs', 'gemini-contract.cjs', 'ai-missions-flow.cjs']) {
+  for (const script of ['word-share-source.cjs', 'word-share.cjs', 'startup-transition.cjs', 'settings-flow.cjs', 'camera-flow.cjs', 'camera-photo-content.cjs', 'camera-zoom.cjs', 'home-rwd.cjs', 'ui-smoke.cjs', 'quiz-motion.cjs', 'photo-transitions.cjs', 'scene-photo.cjs', 'recognition-presentation.cjs', 'object-crops.cjs', 'photo-fallback.cjs', 'reliability-flow.cjs', 'recognition-errors.cjs', 'storage-flow.cjs', 'gemini-contract.cjs', 'ai-missions-flow.cjs']) {
     console.log(`\nRunning ${script}`);
     failed += Number((await run(script)) !== 0);
   }
