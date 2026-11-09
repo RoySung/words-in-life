@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { DetectedItem } from '../../types';
 import type { LibraryStore } from '../../hooks/useLibrary';
 import { getTodayDateKey, rollDate } from '../../domain/missions';
@@ -6,6 +6,14 @@ import { preparePhoto } from '../../repository/photos';
 
 export function useDailyMissions(store: LibraryStore, exploring = false) {
   const { run, services } = store;
+  const [replacingId, setReplacingId] = useState<string | null>(null);
+  const replacing = useRef(false);
+  const replace = async (id: string) => {
+    if (replacing.current) return;
+    replacing.current = true; setReplacingId(id);
+    try { await run(() => services.library.replaceMission(id)); }
+    finally { replacing.current = false; setReplacingId(null); }
+  };
   useEffect(() => {
     const refresh = () => { void run(async () => {
       await services.library.ensureMissionDay();
@@ -29,5 +37,5 @@ export function useDailyMissions(store: LibraryStore, exploring = false) {
     const matchedItem = items.find(item => item.id === committed?.result?.matchedItemId);
     return mission && matchedItem ? { mission, matchedItem } : null;
   };
-  return { ...rollDate(store.library!.daily, getTodayDateKey()), complete };
+  return { ...rollDate(store.library!.daily, getTodayDateKey()), complete, replace, replacingId };
 }

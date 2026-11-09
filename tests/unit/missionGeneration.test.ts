@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createMissionContext, generatedMissions, parseMissionDrafts, type MissionContext, type MissionDraft } from '../../src/domain/missionGeneration';
-import { checkMissionMatch, freshMissions, generateDailyMissionsForDate } from '../../src/domain/missions';
+import { checkMissionMatch, freshMissions, generateDailyMissionsForDate, rollDate, missionNames } from '../../src/domain/missions';
 import { parseItem } from '../../src/domain/validation';
 import { validateDaily } from '../../src/repository/records';
 import { AppError } from '../../src/repository/LibraryRepository';
@@ -159,4 +159,160 @@ test('AI rejects known aliases against the full collection', () => {
   const drafts = suggestions(); drafts[0].synonyms = ['cup'];
   const words = [word('cup')];
   assert.equal(generatedMissions(drafts, '2026-11-04', words), null);
+});
+
+
+test('rollover excludes yesterday including replaced words, and clears daily replacement limits', async () => {
+  const { repo, deps, library, setNow } = setup();
+  await createMissionGenerationUsecases(repo, { generate: async () => suggestions() }, deps).ensure();
+  const original = repo.state.daily.missions[0];
+  await library.replaceMission(original.id);
+  const yesterdayNames = [...repo.state.daily.missions.flatMap(missionNames), ...missionNames(original)];
+  setNow('2026-10-28T00:00:01'); await library.ensureMissionDay();
+  assert(repo.state.daily.missions.every(m => !m.replaced && !missionNames(m).some(n => yesterdayNames.includes(n))));
+  assert(missionNames(original).every(n => repo.state.daily.previousMissionWords?.includes(n)));
+  let input: MissionContext | undefined;
+  await createMissionGenerationUsecases(repo, { generate: async context => { input = context; return suggestions(); } }, deps).ensure();
+  assert(input?.excludedWords?.includes('umbrella'));
+  assert(repo.state.daily.generation?.status === 'ready' && repo.state.daily.generation.source === 'fallback');
+  assert(repo.state.daily.missions.every(m => !missionNames(m).some(n => yesterdayNames.includes(n))));
+});
+
+test('replacement is atomic, persists across services and cannot replace completed or pending missions', async () => {
+  const { repo, deps, library } = setup();
+  const id = repo.state.daily.missions[0].id;
+  await library.replaceMission(id); assert.equal(repo.state.daily.missions[0].id, id);
+  await createMissionGenerationUsecases(repo, { generate: async () => suggestions() }, deps).ensure();
+  const target = repo.state.daily.missions[0];
+  await Promise.all([library.replaceMission(target.id), createLibraryUsecases(repo, deps).replaceMission(target.id)]);
+  const replacement = structuredClone(repo.state.daily.missions[0]);
+  assert(replacement.replaced); assert.notEqual(replacement.targetWord, target.targetWord);
+  assert.equal(repo.state.daily.replacedMissionWords?.length, missionNames(target).length);
+  await createLibraryUsecases(repo, deps).replaceMission(replacement.id);
+  assert.deepEqual(repo.state.daily.missions[0], replacement);
+  const completed = repo.state.daily.missions[1];
+  await library.completeMission({ items: [word(completed.targetWord)], targetId: completed.id, analysisId: 'done' });
+  await library.replaceMission(completed.id);
+  assert(repo.state.daily.missions[1].isCompleted);
+  validateDaily(repo.state.daily);
+});
+
+test('modified object names and plurals match without accepting unrelated compounds or example text', () => {
+  const mission = { ...freshMissions().missions[0], targetWord: 'hanger', targetChinese: '衣架', synonyms: [] };
+  for (const name of ['wooden hanger', 'a small wooden hanger', 'clothes hanger', 'wooden clothes hangers', 'HANGERS']) {
+    assert.equal(checkMissionMatch(mission, [word(name)])?.word, name);
+  }
+  for (const name of ['hanger rack', 'hanger-shaped ornament', 'hanger holder', 'coat rack']) {
+    assert.equal(checkMissionMatch(mission, [word(name)]), null);
+  }
+  assert.equal(checkMissionMatch(mission, [{ ...word('rack'), exampleEn: 'A wooden hanger on the rack.' }]), null);
+});
+
+test('AI rejects singular/plural variants of yesterday targets and aliases', () => {
+  for (const [target, excluded] of [['chair', 'CHAIRS'], ['chairs', 'chair']]) {
+    assert.equal(generatedMissions([draft(target), draft('umbrella'), draft('scarf')], '2026-11-02', [], [excluded]), null);
+  }
+  const drafts = suggestions(); drafts[0].synonyms = ['chairs'];
+  assert.equal(generatedMissions(drafts, '2026-11-02', [], ['chair']), null);
+});
+
+test('rollover and replacement exclude plural variants from previous, current and discarded missions', async () => {
+  const { repo, library, setNow } = setup();
+  repo.state.daily = { ...freshMissions('2026-11-01'),
+    missions: [draft('chairs'), draft('umbrella'), draft('scarf')].map((m, i) => ({ ...m, id: `2026-11-01_${i}`, isCompleted: false })),
+  };
+  const next = rollDate(repo.state.daily, '2026-11-02');
+  assert.equal(next.missions.length, 3);
+  assert(!next.missions.some(m => m.targetWord === 'chair'));
+  for (let day = 1; day <= 30; day++) {
+    const date = `2026-10-${String(day).padStart(2, '0')}`;
+    setNow(`${date}T12:00:00`);
+    for (const source of ['previous', 'current', 'discarded']) {
+      repo.state.daily = { ...freshMissions(date),
+        missions: [draft('umbrella'), draft(source === 'current' ? 'chairs' : 'scarf'), draft('vase')].map((m, i) => ({ ...m, id: `${date}_${i}`, isCompleted: false })),
+        previousMissionWords: source === 'previous' ? ['CHAIRS'] : [],
+        replacedMissionWords: source === 'discarded' ? ['chairs'] : [],
+        generation: { status: 'ready', source: 'ai', generatedAt: 1 },
+      };
+      await library.replaceMission(`${date}_0`);
+      assert(repo.state.daily.missions[0].replaced);
+      assert.notEqual(repo.state.daily.missions[0].targetWord, 'chair', source);
+    }
+  }
+});
+
+test('yesterday avoidance stays deterministic across a year of fallback rollovers', () => {
+  let state = freshMissions('2026-01-01');
+  for (let day = 2; day <= 365; day++) {
+    const date = new Date(2026, 0, day, 12);
+    const key = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const excluded = state.missions.flatMap(missionNames);
+    const next = rollDate(state, key);
+    assert.equal(next.missions.length, 3);
+    assert(next.missions.every(m => !missionNames(m).some(n => excluded.includes(n))));
+    assert.deepEqual(next, rollDate(state, key)); state = next;
+  }
+});
+
+
+test('every card remains replaceable once after all three cards were replaced yesterday', async () => {
+  const { repo, deps, library, setNow } = setup();
+  const generator = { generate: async () => { throw new AppError('MissingCredential'); } };
+  await createMissionGenerationUsecases(repo, generator, deps).ensure();
+  for (const mission of [...repo.state.daily.missions]) await library.replaceMission(mission.id);
+  assert(repo.state.daily.missions.every(m => m.replaced));
+  setNow('2026-10-28T12:00:00'); await library.ensureMissionDay();
+  await createMissionGenerationUsecases(repo, generator, deps).ensure();
+  for (const mission of [...repo.state.daily.missions]) await library.replaceMission(mission.id);
+  assert(repo.state.daily.missions.every(m => m.replaced));
+  assert.equal(new Set(repo.state.daily.missions.map(m => m.targetWord)).size, 3);
+});
+
+test('regular plurals match objects and are excluded from AI missions in either direction', () => {
+  for (const [singular, plural] of [['watch', 'watches'], ['glass', 'glasses'], ['box', 'boxes'], ['bus', 'buses'], ['brush', 'brushes'], ['berry', 'berries'], ['shoe', 'shoes']]) {
+    for (const [target, observed] of [[singular, plural], [plural, singular]]) {
+      const mission = { ...freshMissions().missions[0], targetWord: target, synonyms: [] };
+      assert(checkMissionMatch(mission, [word(observed)]), `${target} accepts ${observed}`);
+      assert.equal(generatedMissions([draft(target), draft('umbrella'), draft('scarf')], '2026-11-06', [], [observed]), null);
+      assert.equal(generatedMissions([draft(target), draft('umbrella'), draft('scarf')], '2026-11-06', [word(observed)]), null);
+    }
+  }
+});
+
+test('descriptive prefixes cannot bypass AI exclusions or known-word checks', () => {
+  for (const [target, excluded] of [['chair', 'plastic chair'], ['plastic chair', 'chair'], ['wooden chair', 'small plastic chairs'], ['glass bottle', 'metal bottles']]) {
+    assert.equal(generatedMissions([draft(target), draft('umbrella'), draft('scarf')], '2026-11-02', [], [excluded]), null);
+    assert.equal(generatedMissions([draft(target), draft('umbrella'), draft('scarf')], '2026-11-02', [word(excluded)]), null);
+  }
+  // Material nouns remain distinct objects; unrelated compounds stay distinct.
+  assert(generatedMissions([draft('glass'), draft('paper'), draft('scarf')], '2026-11-02', [], ['glass bottle', 'paper bag']));
+  assert(generatedMissions([draft('hanger'), draft('umbrella'), draft('scarf')], '2026-11-02', [], ['hanger rack']));
+  const specific = { ...freshMissions().missions[0], targetWord: 'glass bottle', synonyms: [] };
+  assert.equal(checkMissionMatch(specific, [word('plastic bottle')]), null);
+});
+
+test('rollover and replacement exclude plural and descriptively named objects', async () => {
+  const { repo, library, setNow } = setup();
+  for (const [name, base] of [['watches', 'watch'], ['plastic chair', 'chair']]) {
+    for (let day = 2; day <= 30; day++) {
+      const date = `2026-11-${String(day).padStart(2, '0')}`;
+      const previousDate = `2026-11-${String(day - 1).padStart(2, '0')}`;
+      const state = { ...freshMissions(previousDate), missions: [draft(name), draft('umbrella'), draft('scarf')].map((m, i) => ({ ...m, id: `${previousDate}_${i}`, isCompleted: false })) };
+      const next = rollDate(state, date);
+      assert.equal(next.missions.length, 3);
+      assert(!next.missions.some(m => m.targetWord === base), `${date} must exclude yesterday's ${name}`);
+      setNow(`${date}T12:00:00`);
+      for (const source of ['previous', 'current', 'discarded']) {
+        repo.state.daily = { ...freshMissions(date),
+          missions: [draft('umbrella'), draft(source === 'current' ? name : 'scarf'), draft('vase')].map((m, i) => ({ ...m, id: `${date}_${i}`, isCompleted: false })),
+          previousMissionWords: source === 'previous' ? [name] : [],
+          replacedMissionWords: source === 'discarded' ? [name] : [],
+          generation: { status: 'ready', source: 'ai', generatedAt: 1 },
+        };
+        await library.replaceMission(`${date}_0`);
+        assert(repo.state.daily.missions[0].replaced);
+        assert.notEqual(repo.state.daily.missions[0].targetWord, base, `${source}: ${name}`);
+      }
+    }
+  }
 });

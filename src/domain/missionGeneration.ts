@@ -1,4 +1,5 @@
 import type { DailyMission, MissionGeneration } from './missions';
+import { missionNameKey } from './missions';
 import type { Word } from './vocabulary';
 import { finite, record, text, wordKey } from './validation';
 
@@ -15,15 +16,17 @@ export interface MissionContext {
   month: number;
   timeZone: string;
   knownWords: string[];
+  excludedWords?: string[];
   reviewCandidates: MissionWordSummary[];
 }
 export type MissionDraft = Pick<DailyMission, 'targetWord' | 'targetChinese' | 'phonetic' | 'partOfSpeech' | 'emoji' | 'hint' | 'synonyms'> & { kind: 'review' | 'new'; reason: string };
 
-export function createMissionContext(words: Word[], dateKey: string, timeZone: string): MissionContext {
+export function createMissionContext(words: Word[], dateKey: string, timeZone: string, excludedWords: string[] = []): MissionContext {
   // Keep the request bounded; never include photos, examples, credentials or full records.
   return {
     dateKey, month: Number(dateKey.slice(5, 7)), timeZone,
     knownWords: [...new Set(words.map(w => w.word.slice(0, 80)))].slice(0, 500),
+    excludedWords: [...new Set(excludedWords)],
     reviewCandidates: [],
   };
 }
@@ -50,11 +53,11 @@ export function parseMissionDrafts(value: unknown): MissionDraft[] | null {
   return drafts;
 }
 
-export function generatedMissions(drafts: unknown, dateKey: string, words: Word[]): DailyMission[] | null {
+export function generatedMissions(drafts: unknown, dateKey: string, words: Word[], excludedWords: string[] = []): DailyMission[] | null {
   const parsed = parseMissionDrafts({ missions: drafts });
   if (!parsed) return null;
-  const known = new Set(words.map(w => wordKey(w.word)));
-  if (parsed.some(m => [m.targetWord, ...m.synonyms].some(name => known.has(wordKey(name))))) return null;
+  const known = new Set([...words.map(w => missionNameKey(w.word)), ...excludedWords.map(missionNameKey)]);
+  if (parsed.some(m => [m.targetWord, ...m.synonyms].some(name => known.has(missionNameKey(name))))) return null;
   return parsed.map((draft, index) => ({ ...draft, id: `${dateKey}_ai${index}_${wordKey(draft.targetWord)}`, isCompleted: false }));
 }
 

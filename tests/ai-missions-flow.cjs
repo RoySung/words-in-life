@@ -53,6 +53,7 @@ const waitHome = page => page.getByRole('button', { name: /^我的單字/ }).wai
     });
     await openMissions(a);
     await a.locator('.daily-quest[aria-busy="true"]').waitFor();
+    await a.getByRole('status').filter({ hasText: '正在更新今天的尋寶任務' }).waitFor();
     await requested;
     assert.equal(requests.length, 1);
     await openMissions(b); await b.locator('.daily-quest[aria-busy="true"]').waitFor();
@@ -60,6 +61,15 @@ const waitHome = page => page.getByRole('button', { name: /^我的單字/ }).wai
     release();
     for (const page of [a,b]) await page.locator('.quest-card-action').first().waitFor();
     assert.equal(requests.length, 1, 'two tabs must claim the day before requesting AI');
+    for (const page of [a,b]) await page.locator('.daily-quest[aria-busy="false"]').waitFor();
+    const beforeReplacement = (await snapshot(a)).daily.missions[0];
+    await a.locator('.quest-replace').first().click();
+    await a.getByRole('button', { name: /已更換過/ }).waitFor();
+    assert.equal(await a.getByRole('button', { name: /已更換過/ }).isDisabled(), true);
+    await b.getByRole('button', { name: /已更換過/ }).waitFor();
+    const afterReplacement = (await snapshot(a)).daily.missions[0];
+    assert(afterReplacement.replaced); assert.notEqual(afterReplacement.targetWord, beforeReplacement.targetWord);
+    assert.equal(requests.length, 1, 'replacement uses the local pool without another AI request');
     const request = requests[0]; const input = JSON.parse(request.body.contents[0].parts[0].text);
     assert.equal(request.key, 'mission-fixture-key'); assert.equal(input.dateKey, '2026-10-27'); assert.equal(input.month, 10); assert.equal(input.timeZone, 'Asia/Taipei');
     assert.deepEqual(input.reviewCandidates, []);
@@ -74,7 +84,8 @@ const waitHome = page => page.getByRole('button', { name: /^我的單字/ }).wai
       if (width !== 320) await a.screenshot({ path:`${output}/ai-missions-${width}.png` });
     }
     await a.getByRole('button', { name:'關閉探索' }).click(); await a.reload(); await waitHome(a); await openMissions(a);
-    await a.locator('.quest-card-action').first().waitFor(); assert.equal(requests.length,1);
+    await a.getByRole('button', { name: /已更換過/ }).waitFor();
+    assert.equal(await a.getByRole('button', { name: /已更換過/ }).isDisabled(), true); assert.equal(requests.length,1);
     await context.close();
 
     for (const scenario of ['no-key','rate-limit','invalid']) {

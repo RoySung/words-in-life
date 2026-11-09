@@ -31,7 +31,7 @@ export function createMissionGenerationUsecases(repository: LibraryRepository, g
     });
     const generation = claim.snapshot.daily.generation;
     if (closed || generation?.status !== 'generating' || generation.requestId !== requestId || claim.snapshot.daily.dateKey !== dateKey) return claim.snapshot;
-    const context = createMissionContext(claim.snapshot.words, dateKey, deps.timeZone());
+    const context = createMissionContext(claim.snapshot.words, dateKey, deps.timeZone(), claim.snapshot.daily.previousMissionWords);
     const controller = new AbortController(); controllers.add(controller);
     const timer = setTimeout(() => controller.abort(new AppError('Timeout')), timeoutMs);
     let detach = () => {};
@@ -44,7 +44,7 @@ export function createMissionGenerationUsecases(repository: LibraryRepository, g
         detach = () => controller.signal.removeEventListener('abort', onAbort);
       });
       const drafts = await Promise.race([generator.generate(context, { signal: controller.signal }), cancelled]);
-      missions = generatedMissions(drafts, dateKey, claim.snapshot.words);
+      missions = generatedMissions(drafts, dateKey, claim.snapshot.words, claim.snapshot.daily.previousMissionWords);
     } catch (cause) {
       if (cause instanceof AppError && cause.code === 'MissingCredential') fallbackReason = 'missing-key';
     } finally {
@@ -56,10 +56,10 @@ export function createMissionGenerationUsecases(repository: LibraryRepository, g
       if (getTodayDateKey(new Date(deps.now())) !== dateKey || snapshot.daily.dateKey !== dateKey ||
         active?.status !== 'generating' || active.requestId !== requestId || snapshot.daily.missions.some(m => m.isCompleted)) return null;
       // A collection edit while waiting may make a proposed new word known.
-      const finalMissions = missions && generatedMissions(missions, dateKey, snapshot.words);
+      const finalMissions = missions && generatedMissions(missions, dateKey, snapshot.words, snapshot.daily.previousMissionWords);
       const daily = finalMissions
         ? { ...snapshot.daily, missions: finalMissions, generation: { status: 'ready' as const, source: 'ai' as const, generatedAt: deps.now() } }
-        : lockMissions({ ...snapshot.daily, missions: generateDailyMissionsForDate(dateKey, snapshot.words.map(w => w.word)) }, deps.now(), fallbackReason);
+        : lockMissions({ ...snapshot.daily, missions: generateDailyMissionsForDate(dateKey, snapshot.words.map(w => w.word), snapshot.daily.previousMissionWords) }, deps.now(), fallbackReason);
       return { changes: { daily }, result: { kind: 'day' } };
     });
     return result.snapshot;

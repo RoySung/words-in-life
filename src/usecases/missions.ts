@@ -1,10 +1,15 @@
-import { completeMission, getTodayDateKey, lockMissions, rollDate } from '../domain/missions';
+import { completeMission, getTodayDateKey, lockMissions, replaceMission, rollDate } from '../domain/missions';
 import type { VocabularyItem } from '../domain/vocabulary';
 import type { PhotoRef } from '../domain/photos';
 import type { PreparedPhoto } from '../repository/LibraryRepository';
 import type { Dependencies, Execute } from './library';
 export function missionUsecases(execute: Execute, deps: Dependencies) {
   return {
+    replaceMission: (id: string) => execute(deps.createId(), [], state => {
+      const current = rollDate(state.daily, getTodayDateKey(new Date(deps.now())));
+      const daily = replaceMission(current, id, state.words.map(w => w.word));
+      return daily === state.daily ? null : { changes: { daily }, result: { kind: 'day' } };
+    }),
     startMission: (id: string) => execute(deps.createId(), [], state => {
       const current = rollDate(state.daily, getTodayDateKey(new Date(deps.now())));
       const daily = current.missions.some(m => m.id === id && !m.isCompleted) ? lockMissions(current, deps.now(), 'started') : current;

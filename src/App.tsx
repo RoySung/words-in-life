@@ -154,6 +154,8 @@ function Application({ store }: { store: ReturnType<typeof useLibrary> }) {
           dailyMissions={dailyMissions}
           onMissionsOpenChange={setExploringMissions}
           missionsLoading={missionsLoading}
+          replacingMissionId={missions.replacingId}
+          onReplaceMission={mission => { void missions.replace(mission.id); }}
           missionsNotice={missionsNotice}
           onStartQuest={handleStartQuest}
           onViewMissionSticker={(mission) => {

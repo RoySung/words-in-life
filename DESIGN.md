@@ -165,3 +165,25 @@ Opening maps the whole print to the existing detail photo, enlarges it gently, t
 Technical recognition failures distinguish incomplete responses, timeouts, service availability, credentials, quota and invalid requests. Incomplete responses and timeouts do not assert that the photo is too complex or the network is unstable. Retryable failures keep the current photo and prioritize「重新辨識本圖」; credential failures prioritize「檢查 API key 設定」, opening settings while retaining the failed photo and quest. Settings then offers「返回辨識結果」so users can retry the original photo with the updated key, including after leaving settings without saving or clearing the key. Photography hints retain the retake action.
 
 Clicking the failure message five times, with at most two seconds between clicks, reveals a collapsible「Dev mode · Error log」section. The heading also accepts keyboard activation. Logs belong to the current failure, reset on a new failure, and can be copied with a visible fallback when clipboard access fails. Diagnostics retain bounded error causes and HTTP status, omit request objects and stacks, and redact credentials and image data. Coverage: `tests/recognition-errors.cjs`, `tests/reliability-flow.cjs`, `tests/gemini-contract.cjs` and `tests/unit/recognitionFailure.test.ts`.
+
+### Daily mission refinement · 2026-11-09
+
+Daily mission generation shows a visible「正在更新今天的尋寶任務…」status with a spinner, including when temporary cards already exist. Cards remain disabled until generation settles. Reduced motion keeps the status text and disables spinner rotation.
+
+Each unfinished card offers「換一個」and explains「每個單字可換一次」. Replacements come from the local pool, avoid yesterday’s targets and aliases, today’s other targets, and discarded targets, and prefer unfamiliar words. The replacement limit is saved atomically and shared across reloads and tabs. Replaced cards display a disabled「已更換一次」button; completed cards do not offer replacement. At rollover, yesterday’s final and discarded targets are retained for exclusion from both AI and fallback missions, and replacement limits reset.
+
+Matching accepts full object names with familiar material, color and size prefixes, plus simple plurals: hanger accepts wooden hanger and wooden clothes hangers. It still excludes unrelated compounds such as hanger rack and ignores examples and collocations as observations.
+
+Replacement cards turn edge-on over 160ms, swap their word while hidden, then reveal the new card over 240ms. Other cards stay still. The turning card is inert until the transition finishes. Reduced motion uses an 80ms/100ms opacity transition. Animations cancel on unmount; ordinary generation, rollover and reload do not replay a replacement flip.
+
+`/design-system/preview?screen=missions&state=loading` holds the visible updating state without accessing the user's library. Preview controls can reset replacement limits and demonstrate the production flip interaction. `tests/mission-transition.cjs` checks the loading controls, both motion preferences, the card turn, restored interaction and reload.
+
+### Updating mission cards · 2026-11-09
+
+While「正在更新今天的尋寶任務…」is visible, card text and actions fade to 43% opacity while card surfaces stay in place. All task actions, replacement buttons, completed-result actions and speakers use native disabled controls. When generation settles, controls regain their normal availability. Loading animations pause when the section is offscreen or the document is hidden. This treatment applies to daily generation only; single-word replacement retains its flip transition.
+
+The generation status reads「正在更新今天的尋寶任務」without an ellipsis. A decorative 58 × 24px magnifying glass scans three small clues immediately after the text on a 1.8s loop, replacing the leading spinner for generation only. The inline indicator pauses offscreen and stays static under reduced motion. Card-level flashing lights are removed; the generation status has a 8px bottom margin before the cards. Replacement keeps its existing spinner and wording.
+
+The homepage「今日尋寶」entry includes a decorative magnifying-glass icon immediately before its text, using the same icon family as the trailing generation indicator.
+
+Daily progress「今天找到：」and the generation indicator share a single 32px row with a 8px bottom margin. Only one face is exposed to accessibility at a time. Loading changes turn the row around its horizontal axis: 140ms out followed by 220ms in, with fixed row geometry so cards stay in place. Rapid changes reverse the current transition and settle on the latest state. Reduced motion crossfades without rotation; hidden search indicators pause.

@@ -83,6 +83,7 @@ export interface DailyMission {
   synonyms: string[]; // Related words or collocations that also fulfill the mission
   kind?: 'review' | 'new';
   reason?: string;
+  replaced?: boolean;
   isCompleted: boolean;
   completedAt?: number;
   completedItem?: import('./domain/vocabulary').VocabularyItem;

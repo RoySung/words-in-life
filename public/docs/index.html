@@ -335,7 +335,7 @@
           <details><summary><code>tests/</code><span class="folder-purpose">核心契約與瀏覽器驗證</span></summary>
             <div class="file-entry"><code>unit/ / helpers/ / run-unit.mjs</code><p>Domain、Usecases 與依賴邊界測試；記憶體 Repository 與可重用的圖庫契約。</p></div>
             <div class="file-entry"><code>storage-flow.cjs / gemini-contract.cjs / reliability-flow.cjs</code><p>真實 IndexedDB、衝突與交易回滾、模擬 Gemini 請求與錯誤、日期切換。</p></div>
-            <div class="file-entry"><code>unit/missionGeneration.test.ts / ai-missions-flow.cjs</code><p>個人化選題驗證、每日快取、逾時與跨日防護，以及真實 IndexedDB 兩分頁生成競態、生成中畫面與備援。</p></div>
+            <div class="file-entry"><code>unit/missionGeneration.test.ts / ai-missions-flow.cjs</code><p>個人化選題驗證、每日快取、昨日排除、替換限制與名稱變體，以及真實 IndexedDB 兩分頁生成／替換同步、生成中畫面與備援。</p></div>
             <div class="file-entry"><code>ui-smoke.cjs / camera-flow.cjs / settings-flow.cjs / photo-transitions.cjs / quiz-motion.cjs</code><p>收藏與對話框、模擬相機、設定、照片過場與翻卡互動；run-e2e.mjs 負責啟動隔離測試伺服器。</p></div>
           </details>
           <details><summary><code>專案根目錄 + docs/architecture/</code><span class="folder-purpose">設定與設計紀錄</span></summary>
@@ -362,7 +362,7 @@
           <div><h3>照片怎麼找到？</h3><p><code>PhotoRef</code> 分成靜態資源路徑與已儲存照片 ID。已儲存照片使用 <code>photo:SHA-256</code> 作為內容 ID；元件經 URL 管理器取得共用 Blob URL，最後一個使用者釋放後回收 URL。刪除資料引用與釋放畫面 URL 是兩件事。</p></div>
           <div><h3>多個分頁怎麼同步？</h3><p>每次提交都在交易內核對 <code>expectedRevision</code>。衝突時重新讀取、重算與提交，最多三次；成功後以 BroadcastChannel 通知其他分頁，頁面回到前景時也重新載入。</p></div>
         </div>
-        <div class="note"><strong>本機設定與資料界線</strong>Words in Life 的資料庫與設定儲存鍵統一使用 words-in-life 命名空間，不讀取或遷移舊名稱的資料與設定。API key 存在 localStorage 的 <code>words-in-life-gemini-key-v1</code>；相機開關使用 <code>words-in-life-camera-enabled-v1</code>。儲存 key 不會驗證其有效性；實際辨識時照片與 key 會直接送往 Google，任務生成則傳送日期、時區與單字／複習摘要。專案目前沒有登入、雲端同步或資料匯入匯出功能。</div>
+        <div class="note"><strong>本機設定與資料界線</strong>Words in Life 的資料庫與設定儲存鍵統一使用 words-in-life 命名空間，不讀取或遷移舊名稱的資料與設定。API key 存在 localStorage 的 <code>words-in-life-gemini-key-v1</code>；相機開關使用 <code>words-in-life-camera-enabled-v1</code>。儲存 key 不會驗證其有效性；實際辨識時照片與 key 會直接送往 Google，任務生成則傳送日期、時區、已知單字與昨日任務排除清單。專案目前沒有登入、雲端同步或資料匯入匯出功能。</div>
         <details><summary>初始資料與舊版資料</summary><p>新資料庫首次初始化加入四個既有範例單字；刪空後重新載入仍保持空白。目前不讀取、遷移或清除舊名稱的資料庫與 localStorage；收藏、API key 與相機偏好皆使用新命名空間。</p><br></details>
       </section>
 
@@ -417,12 +417,12 @@
         ['計算統計','回答 → 更新後的 Word','recordReview 固定本次時間並在快照中尋找單字；reviewWord 將 reviewCount 加一、依回答更新 rememberedCount，同時計算比例與最近複習時間。','src/usecases/collection.ts · src/domain/reviews.ts'],
         ['保存回答','Word → 本機紀錄','提交更新的單字與操作結果。既有照片參照沒有改變，引用差額為零，不需讀取或重寫 Blob；版本衝突則重讀後再次計算。','src/usecases/library.ts · src/repository/indexedDbRepository.ts']
       ] },
-      missions: { description:'AI 依生活物件、時節與單字簿安排今日任務，再以照片辨識結果判斷完成。', boundary:'當天結果固定，缺 key 或生成失敗使用備援。每次辨識最多完成一個未完成任務，三項全數完成才更新連續天數；範例辨識也適用。', steps:[
+      missions: { description:'AI 依生活物件、時節與單字簿安排今日任務，再以照片辨識結果判斷完成。', boundary:'缺 key 或生成失敗使用備援，避開昨日物件。每個未完成任務可從本機題庫更換一次，跨分頁和重載保留限制。每次辨識最多完成一個任務，三項全數完成才更新連續天數；範例辨識也適用。', steps:[
         ['確認日期','本機日期 → 當日狀態','Hook 每 15 秒、視窗 focus 或頁面回到前景時檢查日期。跨日建立 pending 狀態與三個備援目標；已生成的當日內容與進度不重置。只有開啟今日尋寶時才啟動 AI 選題。','src/features/missions/useDailyMissions.ts · src/domain/missions.ts'],
         ['取得生成權','IndexedDB → 當日唯一請求','Usecase 用 revision 交易保存 requestId 與開始時間，多分頁只有取得權限者呼叫 AI。有效權限下其他分頁等待結果；被中斷的權限超過 30 秒，在下次檢查時固定為備援。','src/usecases/missionGeneration.ts'],
-        ['個人化選題','單字摘要 → 一項複習、兩項新字','傳送日期、月份、時區、最多 500 個已知字與 30 個複習候選，沒有照片。Gemini 以獨立 system prompt 回傳三個物件、提示與選題理由；空收藏時為三項新字。程式驗證結果，失敗使用備援。','src/domain/missionGeneration.ts · src/repository/gemini/missionRequest.ts'],
+        ['個人化選題','單字摘要 → 三項新探索','傳送日期、月份、時區、最多 500 個已知字及昨日任務排除清單，沒有照片或複習統計。Gemini 以獨立 system prompt 回傳三個物件、提示與選題理由。程式驗證新字與排除規則，失敗使用備援。','src/domain/missionGeneration.ts · src/repository/gemini/missionRequest.ts'],
         ['保存與固定','生成結果 → 當日任務','以日期與 requestId 檢查後保存 AI 或備援結果，重整與收藏變更不重抽。開始或完成任務也會固定當天目標；晚到結果不得覆蓋。任務請求有 25 秒期限，DB 衝突不重送 AI。','src/usecases/missionGeneration.ts · src/usecases/missions.ts'],
-        ['比對物件','辨識單字 → 命中目標','成功的辨識結果交給任務流程。以物件 word 與任務 targetWord、synonyms 做正規化後的精確匹配，例句中的字不計入。優先檢查使用者選取的未完成任務。','src/usecases/missions.ts · src/domain/missions.ts'],
+        ['比對物件','辨識單字 → 命中目標','成功的辨識結果交給任務流程。以物件 word 與任務 targetWord、synonyms 比對，接受規則複數與常見描述前綴，排除無關複合詞；例句中的字不計入。優先檢查使用者選取的未完成任務。','src/usecases/missions.ts · src/domain/missions.ts'],
         ['儲存完成','命中任務 → 任務狀態','寫入完成時間、原圖與裁切參照；若當天三項全數完成，更新連續完成天數。以 analysisId 建立操作 ID，避免同一辨識重複套用。','src/usecases/missions.ts · src/repository/indexedDbRepository.ts'],
         ['顯示回饋','提交結果 → 完成提示','從提交結果找出實際完成的任務與命中物件，再顯示完成提示。儲存失敗透過圖庫錯誤狀態回報，已取得的辨識場景仍可留在畫面。','src/features/missions/useDailyMissions.ts · src/App.tsx']
       ] }

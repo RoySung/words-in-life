@@ -20,9 +20,11 @@ export function validateWord(value: unknown): asserts value is Word {
 }
 export function validateDaily(value: unknown): asserts value is MissionState {
   if (!record(value) || typeof value.dateKey !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value.dateKey) ||
+      ['previousMissionWords', 'replacedMissionWords'].some(key => value[key] !== undefined && (!Array.isArray(value[key]) || !value[key].every(v => typeof v === 'string'))) ||
       !Number.isInteger(value.streak) || Number(value.streak) < 0 || !validMissionGeneration(value.generation) || !Array.isArray(value.missions) || value.missions.length !== 3 ||
       !value.missions.every(m => record(m) && typeof m.id === 'string' && typeof m.targetWord === 'string' && typeof m.targetChinese === 'string' &&
         Array.isArray(m.synonyms) && m.synonyms.every(s => typeof s === 'string') && typeof m.isCompleted === 'boolean' && validRef(m.completedPhoto) && validRef(m.completedCrop) &&
+        (m.replaced === undefined || typeof m.replaced === 'boolean') &&
         (m.kind === undefined || m.kind === 'review' || m.kind === 'new') && (m.reason === undefined || typeof m.reason === 'string'))) {
     throw new AppError('InvalidData');
   }
